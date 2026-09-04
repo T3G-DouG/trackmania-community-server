@@ -76,7 +76,8 @@ Bekannte Einschränkungen: [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md)
 
 ## Lizenz & Herkunft
 
-GPL-3.0, siehe [LICENSE](LICENSE). Der Controller basiert auf
+GPL-3.0, siehe [LICENSE](LICENSE) und [NOTICE](NOTICE) für die Copyright-Zuordnung.
+Der Controller basiert auf
 [dassschaf/nextcontrol](https://github.com/dassschaf/nextcontrol) (GPL-3.0);
 Website, Automatisierungsskripte und alle Erweiterungen des Controllers
 (Punktesystem, Telegram-Bot, Archiv, Cup-System, KI-Analyse, Admin-Dashboard

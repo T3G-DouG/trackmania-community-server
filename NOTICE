@@ -1,0 +1,13 @@
+Trackmania Community Server -- controller, website and automation scripts for
+running a Trackmania (2020) community/competition server.
+
+The controller/ component is based on nextcontrol
+(https://github.com/dassschaf/nextcontrol), Copyright (C) dassschaf.
+
+The website/ and scripts/ components, and all modifications to controller/,
+are Copyright (C) the contributors to this project.
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE for the full license text.
