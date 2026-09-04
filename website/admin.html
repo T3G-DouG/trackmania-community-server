@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin-Dashboard · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=3">
+    <style>
+        .karte-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:20px; }
+        .feld-zeile { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--hairline); }
+        .feld-zeile:last-of-type { border-bottom:none; }
+        .feld-label { font-size:13px; color:var(--text-dim); }
+        .feld-hinweis { font-size:11px; color:var(--text-dim); opacity:0.7; margin-top:2px; }
+        .feld-eingabe select, .feld-eingabe input[type=number] {
+            background:var(--bg-surface); border:1px solid var(--border2); border-radius:8px;
+            color:#fff; padding:7px 10px; font-size:13px; font-family:var(--mono); width:120px;
+        }
+        .schalter { position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+        .schalter input {
+            position:absolute; inset:0; margin:0; opacity:0; cursor:pointer;
+        }
+        .schalter-slider {
+            position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,0.15);
+            border-radius:24px; transition:0.15s;
+        }
+        .schalter-slider::before {
+            content:""; position:absolute; height:18px; width:18px; left:3px; bottom:3px;
+            background:#fff; border-radius:50%; transition:0.15s;
+        }
+        .schalter input:checked + .schalter-slider { background:var(--accent); }
+        .schalter input:checked + .schalter-slider::before { transform:translateX(18px); }
+        .karte-footer { display:flex; align-items:center; justify-content:space-between; margin-top:18px; gap:12px; }
+        .speichern-btn {
+            padding:9px 20px; border-radius:9px; border:none; background:var(--accent);
+            color:#08120e; font-weight:700; font-size:13px; cursor:pointer;
+        }
+        .speichern-btn:hover { filter:brightness(1.08); }
+        .speichern-btn:disabled { opacity:0.5; cursor:default; filter:none; }
+        .speichern-status { font-size:12px; color:var(--text-dim); }
+        .speichern-status.ok { color:var(--accent4); }
+        .speichern-status.fehler { color:#e08a7d; }
+        .logout-link { font-size:12px; color:var(--text-dim); text-decoration:none; }
+        .logout-link:hover { color:#fff; }
+        .feld-eingabe select[data-feld="wochentag"] { width:130px; }
+        .analyse-status { margin-top:16px; padding-top:14px; border-top:1px solid var(--hairline); }
+        .analyse-status-zeile { font-size:12px; color:var(--text-dim); margin-bottom:4px; }
+        .analyse-status-zeile.warnung { color:#e0b87d; }
+        .analyse-status-zeile.fehler { color:#e08a7d; }
+        .analyse-trigger-btn { margin-top:10px; }
+
+        /* -- System-/Server-Steuerung (AP16c) -------------------------------------------- */
+        .system-stat-row { margin-bottom:14px; }
+        .system-stat-row:last-child { margin-bottom:0; }
+        .system-stat-row .kopf { display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+        .system-stat-row .kopf .wert { font-family:var(--mono); color:#fff; font-weight:700; }
+        .balken-spur { height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; }
+        .balken-fuellung { height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent)); border-radius:3px; transition:width .5s ease; }
+        .balken-fuellung.warnung { background:linear-gradient(90deg,#e0b87d,#e0824a); }
+        .balken-fuellung.kritisch { background:linear-gradient(90deg,#e08a7d,#c96b5e); }
+        .system-kleine-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+        .aktuell-punkt { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:#6fae72; }
+        .aktuell-punkt.veraltet { background:#c96b5e; }
+        .spieler-online-liste { font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+        .steuerung-gruppe { margin-bottom:16px; }
+        .steuerung-gruppe:last-child { margin-bottom:0; }
+        .steuerung-gruppe-titel { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:8px; }
+        .steuerung-btn-reihe { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .steuerung-btn {
+            padding:8px 14px; border-radius:8px; border:1px solid var(--border2); background:var(--bg-surface);
+            color:#fff; font-size:12.5px; cursor:pointer; font-family:var(--mono);
+        }
+        .steuerung-btn:hover { border-color:var(--accent); }
+        .steuerung-btn:disabled { opacity:0.5; cursor:default; }
+        .steuerung-btn.gefahr { border-color:#c96b5e; color:#e08a7d; }
+        .steuerung-btn.gefahr:hover { background:rgba(224,138,125,0.12); }
+        .steuerung-input { width:90px; }
+        .steuerung-feedback { font-size:12px; color:var(--text-dim); margin-top:8px; min-height:16px; }
+        .steuerung-feedback.ok { color:var(--accent4); }
+        .steuerung-feedback.fehler { color:#e08a7d; }
+
+        .log-liste {
+            height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
+            font-family:var(--mono); font-size:12px; padding-right:4px;
+        }
+        .log-liste::-webkit-scrollbar { width:6px; }
+        .log-liste::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+        .log-eintrag { padding:6px 10px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; gap:10px; align-items:baseline; line-height:1.4; }
+        .log-zeit { color:var(--text-dim); font-size:11px; white-space:nowrap; flex-shrink:0; }
+        .log-text { color:var(--text); word-break:break-word; }
+        .log-eintrag.log-rekord .log-text { color:var(--gold); }
+        .log-eintrag.log-admin .log-text { color:var(--accent); }
+        .log-eintrag.log-voting .log-text { color:var(--accent2); }
+        .log-eintrag.log-strecke .log-text { color:var(--accent4); }
+        .log-eintrag.log-errungenschaft .log-text { color:#e0824a; }
+        .log-eintrag.log-ueberholt .log-text { color:var(--error); }
+        .log-eintrag.log-tabelle .log-text { color:var(--accent2); }
+        .log-eintrag.log-hof .log-text { color:var(--gold); font-weight:700; }
+        .log-eintrag.log-kommentar .log-text { color:var(--accent3); font-style:italic; }
+
+        .feld-tabelle { width:100%; border-collapse:collapse; font-size:13px; }
+        .feld-tabelle th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); padding:6px 10px; border-bottom:1px solid var(--hairline); }
+        .feld-tabelle td { padding:9px 10px; border-bottom:1px solid var(--hairline); }
+        .feld-tabelle tr:last-child td { border-bottom:none; }
+        .feld-tabelle td.zahl { font-family:var(--mono); color:var(--text-dim); font-size:12px; }
+        .loesen-btn {
+            padding:5px 12px; border-radius:7px; border:1px solid #c96b5e; background:transparent;
+            color:#e08a7d; font-size:11.5px; cursor:pointer;
+        }
+        .loesen-btn:hover { background:rgba(224,138,125,0.12); }
+        .loesen-btn:disabled { opacity:0.5; cursor:default; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Admin-Dashboard</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Lade Einstellungen …</span>
+                </div>
+            </div>
+        </div>
+        <a class="logout-link" href="admin-logout.php">Abmelden ↦</a>
+    </div>
+</div>
+
+<div class="container">
+    <div id="lade-fehler"></div>
+
+    <div class="section-title">🖥️ System &amp; Server</div>
+    <div class="karte-grid" id="system-karten"></div>
+
+    <div class="section-title" style="margin-top:32px">📅 Monatswechsel</div>
+    <div class="karte-grid" id="monatswechsel-karten"></div>
+
+    <div class="section-title" style="margin-top:32px">🎮 Server-Steuerung</div>
+    <div class="karte-grid" id="steuerung-karten"></div>
+
+    <div class="section-title" style="margin-top:32px">🔗 Telegram-Verknüpfungen</div>
+    <div class="panel">
+        <table class="feld-tabelle" id="telegram-tabelle">
+            <thead><tr><th>Spieler</th><th>Telegram</th><th>Verknüpft am</th><th></th></tr></thead>
+            <tbody><tr><td colspan="4" class="feld-hinweis">Lade …</td></tr></tbody>
+        </table>
+    </div>
+
+    <div class="section-title" style="margin-top:32px">🎛️ KI-Steuerung</div>
+    <div class="karte-grid" id="karten"></div>
+
+    <div class="section-title" style="margin-top:32px">📜 Ereignis-Log</div>
+    <div class="panel">
+        <div class="log-liste" id="log-liste" data-leer="1"><div class="feld-hinweis">Lade …</div></div>
+    </div>
+</div>
+
+<script>
+let GRENZEN = null, MODELLE = [], CSRF = null;
+
+function sanitize(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+}
+
+const WOCHENTAGE = [
+    { wert: 1, label: 'Montag' }, { wert: 2, label: 'Dienstag' }, { wert: 3, label: 'Mittwoch' },
+    { wert: 4, label: 'Donnerstag' }, { wert: 5, label: 'Freitag' }, { wert: 6, label: 'Samstag' },
+    { wert: 0, label: 'Sonntag' },
+];
+
+let pollTimer = null;
+
+async function laden() {
+    let daten;
+    try {
+        const res = await fetch('admin-api.php?action=lesen');
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+    } catch (e) {
+        document.getElementById('lade-fehler').innerHTML = `<div class="error">Fehler beim Laden: ${sanitize(e.message)}</div>`;
+        return;
+    }
+
+    GRENZEN = daten.grenzen;
+    MODELLE = daten.modelle;
+    CSRF = daten.csrf;
+
+    // aktualisiertAm kommt von admin-api.php bereits als fertiger ISO-String (DATE_ATOM), kein
+    // MongoDB-Extended-JSON-Objekt -- new Date() direkt darauf anwendbar.
+    document.getElementById('connection-status').textContent = daten.aktualisiertAm
+        ? `Zuletzt geändert am ${new Date(daten.aktualisiertAm).toLocaleString('de-DE')}${daten.aktualisiertVon ? ' von ' + sanitize(daten.aktualisiertVon) : ''}`
+        : 'Noch keine Änderungen -- es gelten die Standardwerte.';
+
+    document.getElementById('karten').innerHTML =
+        renderKarte('rennleitung', '🏁 Rennleitung', daten.einstellungen.rennleitung, [
+            { feld: 'minAbstandMs', label: 'Mindestabstand Streckenkommentare', einheit: 's', faktor: 1000 },
+            { feld: 'ambientAbstandMs', label: 'Mindestabstand Ambient-Kommentare', einheit: 'min', faktor: 60000 },
+            { feld: 'maxProStunde', label: 'Max. Kommentare pro Stunde', einheit: '', faktor: 1 },
+        ]) +
+        renderKarte('nachrichtenKi', '💬 Nachrichten-KI', daten.einstellungen.nachrichtenKi, [
+            { feld: 'maxProStunde', label: 'Max. Umformulierungen pro Stunde', einheit: '', faktor: 1 },
+        ]) +
+        renderAnalyseKarte(daten.einstellungen.analyse, daten.analyseStatus) +
+        renderTagesreportKarte(daten.einstellungen.tagesreport);
+
+    document.getElementById('monatswechsel-karten').innerHTML = renderMonatswechselKarte(daten.monatswechsel);
+
+    // Solange ein Trigger noch aussteht (vom Controller noch nicht abgeholt/verarbeitet),
+    // alle 5s neu laden, bis sich der Stand aendert -- macht "Jetzt auslösen" sichtbar statt
+    // eines stillen Wartens ohne Rueckmeldung. Stoppt sich selbst, sobald erledigt.
+    if (daten.analyseStatus.ausstehenderTrigger || daten.monatswechsel.ausstehenderTrigger) {
+        if (!pollTimer) pollTimer = setInterval(laden, 5000);
+    } else if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
+function renderKarte(bereich, titel, werte, felder) {
+    const grenzenBereich = GRENZEN[bereich];
+    const feldZeilen = felder.map((f) => {
+        const grenze = grenzenBereich[f.feld];
+        const angezeigterWert = Math.round((werte[f.feld] ?? 0) / f.faktor);
+        const min = Math.round(grenze.min / f.faktor) || (grenze.min / f.faktor);
+        const max = Math.round(grenze.max / f.faktor);
+        return `
+        <div class="feld-zeile">
+            <div>
+                <div class="feld-label">${sanitize(f.label)}</div>
+                <div class="feld-hinweis">erlaubt: ${min}–${max}${f.einheit ? ' ' + f.einheit : ''}</div>
+            </div>
+            <div class="feld-eingabe">
+                <input type="number" data-feld="${f.feld}" data-faktor="${f.faktor}" value="${angezeigterWert}" min="${min}" max="${max}">
+            </div>
+        </div>`;
+    }).join('');
+
+    const modellOptionen = MODELLE.map((m) => `<option value="${m}" ${m === werte.modell ? 'selected' : ''}>${m}</option>`).join('');
+
+    return `
+    <div class="panel karte-ki" data-bereich="${bereich}">
+        <div class="panel-header">
+            <h2>${titel}</h2>
+            <label class="schalter">
+                <input type="checkbox" data-feld="aktiv" ${werte.aktiv ? 'checked' : ''}>
+                <span class="schalter-slider"></span>
+            </label>
+        </div>
+        <div class="feld-zeile">
+            <div class="feld-label">Modell</div>
+            <div class="feld-eingabe"><select data-feld="modell">${modellOptionen}</select></div>
+        </div>
+        ${feldZeilen}
+        <div class="karte-footer">
+            <button class="speichern-btn" type="button" onclick="speichern('${bereich}', this)">Speichern</button>
+            <span class="speichern-status"></span>
+        </div>
+    </div>`;
+}
+
+function ergebnisText(grund) {
+    const texte = {
+        laeuftBereits: 'es läuft bereits ein Lauf oder ein anderer Trigger wartet noch auf Verarbeitung',
+        fehler: 'Datenbank aktuell nicht erreichbar',
+        erfolgreich: 'erfolgreich abgeschlossen und an Telegram gesendet (falls aktiviert)',
+        fehlgeschlagen: 'fehlgeschlagen -- siehe Server-Log',
+    };
+    return texte[grund] || grund;
+}
+
+function renderAnalyseKarte(werte, status) {
+    const wochentagOptionen = WOCHENTAGE.map((w) => `<option value="${w.wert}" ${w.wert === werte.wochentag ? 'selected' : ''}>${w.label}</option>`).join('');
+    const modellOptionen = MODELLE.map((m) => `<option value="${m}" ${m === werte.modell ? 'selected' : ''}>${m}</option>`).join('');
+
+    const letzterLauf = status.letzterLauf;
+    const letzterLaufZeile = letzterLauf
+        ? `Letzter Lauf: ${new Date(letzterLauf.erstelltAm).toLocaleString('de-DE')} (${sanitize(letzterLauf.berichtTyp ?? 'woche')}, ${sanitize(letzterLauf.ausloeser)}, Status ${sanitize(letzterLauf.textStatus)}, Modell ${sanitize(letzterLauf.modell)})`
+        : 'Noch kein Analyse-Lauf durchgeführt.';
+
+    let guardZeile = '';
+    if (status.ausstehenderTrigger) {
+        guardZeile = `<div class="analyse-status-zeile warnung">⏳ Trigger wird vom Controller verarbeitet … (Seite aktualisiert sich automatisch)</div>`;
+    } else if (status.naechsterErlaubterZeitpunkt) {
+        guardZeile = `<div class="analyse-status-zeile warnung">Budget-Guard aktiv -- nächster Lauf erst ab ${new Date(status.naechsterErlaubterZeitpunkt).toLocaleString('de-DE')} möglich.</div>`;
+    } else if (status.letztesTriggerErgebnis) {
+        guardZeile = `<div class="analyse-status-zeile">Letzter manueller Trigger: ${sanitize(ergebnisText(status.letztesTriggerErgebnis))}</div>`;
+    }
+
+    return `
+    <div class="panel karte-ki" data-bereich="analyse">
+        <div class="panel-header">
+            <h2>📊 Analyse (Wochenbericht)</h2>
+        </div>
+        <div class="feld-zeile">
+            <div class="feld-label">Modell</div>
+            <div class="feld-eingabe"><select data-feld="modell">${modellOptionen}</select></div>
+        </div>
+        <div class="feld-zeile">
+            <div class="feld-label">Wochentag (wöchentlicher Automatik-Lauf)</div>
+            <div class="feld-eingabe"><select data-feld="wochentag">${wochentagOptionen}</select></div>
+        </div>
+        <div class="feld-zeile">
+            <div class="feld-label">Uhrzeit (frühestens ab)</div>
+            <div class="feld-eingabe"><input type="time" data-feld="uhrzeit" value="${sanitize(werte.uhrzeit)}"></div>
+        </div>
+        <div class="feld-zeile">
+            <div class="feld-label">Telegram-Bericht senden</div>
+            <label class="schalter">
+                <input type="checkbox" data-feld="telegramBericht" ${werte.telegramBericht ? 'checked' : ''}>
+                <span class="schalter-slider"></span>
+            </label>
+        </div>
+        <div class="karte-footer">
+            <button class="speichern-btn" type="button" onclick="speichernAnalyse(this)">Speichern</button>
+            <span class="speichern-status"></span>
+        </div>
+        <div class="analyse-status">
+            <div class="analyse-status-zeile">${sanitize(letzterLaufZeile)}</div>
+            ${guardZeile}
+            <div class="feld-zeile">
+                <div class="feld-label">Berichtstyp</div>
+                <div class="feld-eingabe">
+                    <select id="analyse-trigger-typ">
+                        <option value="woche">🗓️ Wochenbericht</option>
+                        <option value="monat">📅 Monatsbericht</option>
+                    </select>
+                </div>
+            </div>
+            <button class="speichern-btn analyse-trigger-btn" type="button" id="analyse-trigger-btn"
+                onclick="analyseJetztAusloesen(this)" ${status.ausstehenderTrigger ? 'disabled' : ''}>
+                ${status.ausstehenderTrigger ? 'Läuft …' : 'Jetzt auslösen'}
+            </button>
+        </div>
+    </div>`;
+}
+
+async function speichernAnalyse(knopf) {
+    const karte = knopf.closest('.karte-ki');
+    const status = karte.querySelector('.speichern-status');
+    const werte = {
+        modell: karte.querySelector('[data-feld="modell"]').value,
+        wochentag: Number(karte.querySelector('[data-feld="wochentag"]').value),
+        uhrzeit: karte.querySelector('[data-feld="uhrzeit"]').value,
+        telegramBericht: karte.querySelector('[data-feld="telegramBericht"]').checked,
+    };
+
+    knopf.disabled = true;
+    status.textContent = 'Speichere …';
+    status.className = 'speichern-status';
+
+    try {
+        const res = await fetch('admin-api.php?action=schreiben', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bereich: 'analyse', werte, csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        status.textContent = 'Gespeichert -- gilt ab dem nächsten geplanten Lauf.';
+        status.className = 'speichern-status ok';
+    } catch (e) {
+        status.textContent = 'Fehler: ' + e.message;
+        status.className = 'speichern-status fehler';
+    } finally {
+        knopf.disabled = false;
+    }
+}
+
+function renderTagesreportKarte(werte) {
+    return `
+    <div class="panel karte-ki" data-bereich="tagesreport">
+        <div class="panel-header">
+            <h2>🌙 Tagesreport</h2>
+            <label class="schalter">
+                <input type="checkbox" data-feld="aktiv" ${werte.aktiv ? 'checked' : ''}>
+                <span class="schalter-slider"></span>
+            </label>
+        </div>
+        <div class="feld-hinweis" style="margin-bottom:10px">Fasst Bestzeiten-Verbesserungen der letzten 24 Stunden zusammen und verschickt sie an Telegram, sofern in dem Zeitraum gefahren wurde -- rein deterministisch, kein KI-Modell nötig.</div>
+        <div class="feld-zeile">
+            <div class="feld-label">Uhrzeit (frühestens ab)</div>
+            <div class="feld-eingabe"><input type="time" data-feld="uhrzeit" value="${sanitize(werte.uhrzeit)}"></div>
+        </div>
+        <div class="karte-footer">
+            <button class="speichern-btn" type="button" onclick="speichernTagesreport(this)">Speichern</button>
+            <span class="speichern-status"></span>
+        </div>
+    </div>`;
+}
+
+async function speichernTagesreport(knopf) {
+    const karte = knopf.closest('.karte-ki');
+    const status = karte.querySelector('.speichern-status');
+    const werte = {
+        aktiv: karte.querySelector('[data-feld="aktiv"]').checked,
+        uhrzeit: karte.querySelector('[data-feld="uhrzeit"]').value,
+    };
+
+    knopf.disabled = true;
+    status.textContent = 'Speichere …';
+    status.className = 'speichern-status';
+
+    try {
+        const res = await fetch('admin-api.php?action=schreiben', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bereich: 'tagesreport', werte, csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        status.textContent = 'Gespeichert -- gilt ab heute Abend.';
+        status.className = 'speichern-status ok';
+    } catch (e) {
+        status.textContent = 'Fehler: ' + e.message;
+        status.className = 'speichern-status fehler';
+    } finally {
+        knopf.disabled = false;
+    }
+}
+
+function ergebnisTextMonatswechsel(grund) {
+    const texte = {
+        laeuftBereits: 'es läuft bereits ein Lauf oder ein anderer Trigger wartet noch auf Verarbeitung',
+        wartungsmodus: 'Wartungsmodus ist aktiv -- zuerst Grund beheben oder Wartungsmodus aufheben',
+        ausserhalbZeitfenster: 'außerhalb des automatischen Zeitfensters (nur am 1. des Monats ab 00:10)',
+        bereitsVersuchtDiesenMonat: 'für diesen Monat wurde bereits automatisch versucht',
+        fehler: 'Datenbank aktuell nicht erreichbar',
+    };
+    return texte[grund] || grund;
+}
+
+function renderMonatswechselKarte(status) {
+    const letzter = status.letzterErfolgreicherMonatswechsel;
+    const letzterZeile = letzter
+        ? `Letzter erfolgreicher Monatswechsel: ${sanitize(letzter.monat)} (${new Date(letzter.am).toLocaleString('de-DE')})`
+        : 'Noch kein automatischer/manueller Monatswechsel über dieses System durchgeführt.';
+
+    const wartungsBlock = status.wartungsmodus ? `
+        <div class="analyse-status-zeile fehler">🔧 Wartungsmodus AKTIV seit ${new Date(status.seit).toLocaleString('de-DE')}</div>
+        <div class="analyse-status-zeile fehler">Schritt: ${sanitize(status.schritt ?? '-')}</div>
+        <div class="analyse-status-zeile fehler">Grund: ${sanitize(status.grund ?? '-')}</div>`
+        : `<div class="analyse-status-zeile">✅ Kein Wartungsmodus aktiv -- Spielbetrieb + Automatik laufen normal.</div>`;
+
+    const guardZeile = status.ausstehenderTrigger
+        ? `<div class="analyse-status-zeile warnung">⏳ Trigger wird vom Controller verarbeitet … (Seite aktualisiert sich automatisch)</div>`
+        : '';
+
+    return `
+    <div class="panel">
+        <div class="panel-header">
+            <h2>📅 Monatswechsel</h2>
+        </div>
+        <div class="feld-hinweis" style="margin-bottom:10px">Läuft automatisch am 1. des Monats ab 00:10 (dedizierter Backup-Dump + Archiv-Verifikation vor jedem Wechsel). Bei einem Fehler pausiert die Automatik (kein Wiederholungsversuch) und zeigt ein Wartungsbanner ingame + auf der Website -- der reguläre Spielbetrieb läuft dabei normal weiter.</div>
+        <div class="analyse-status">
+            <div class="analyse-status-zeile">${sanitize(letzterZeile)}</div>
+            ${wartungsBlock}
+            ${guardZeile}
+            <div class="steuerung-btn-reihe" style="margin-top:10px">
+                <button class="speichern-btn" type="button" id="monatswechsel-trigger-btn"
+                    onclick="monatswechselJetztAusloesen(this)" ${status.ausstehenderTrigger ? 'disabled' : ''}>
+                    ${status.ausstehenderTrigger ? 'Läuft …' : 'Jetzt manuell auslösen'}
+                </button>
+                ${status.wartungsmodus ? `<button class="steuerung-btn gefahr" type="button" onclick="monatswechselWartungAufheben(this)" ${status.ausstehenderTrigger ? 'disabled' : ''}>Wartungsmodus aufheben</button>` : ''}
+            </div>
+        </div>
+    </div>`;
+}
+
+async function monatswechselJetztAusloesen(knopf) {
+    if (!confirm('Monatswechsel jetzt wirklich manuell auslösen? Das archiviert den aktuellen Monat, leert die laufende Rangliste und schaltet den Server auf die nächsten Strecken um.')) return;
+    knopf.disabled = true;
+    knopf.textContent = 'Sende …';
+    try {
+        const res = await fetch('admin-api.php?action=monatswechselTrigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        if (!daten.ok) {
+            alert(`Trigger abgelehnt: ${ergebnisTextMonatswechsel(daten.grund)}.`);
+            knopf.disabled = false;
+            knopf.textContent = 'Jetzt manuell auslösen';
+            return;
+        }
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+        knopf.disabled = false;
+        knopf.textContent = 'Jetzt manuell auslösen';
+        return;
+    }
+    // Erfolgreich angestoßen -- laden() zeigt "ausstehend" + startet das Polling.
+    laden();
+}
+
+async function monatswechselWartungAufheben(knopf) {
+    if (!confirm('Wartungsmodus wirklich aufheben, OHNE den Monatswechsel erneut auszulösen? Nur bestätigen, wenn das zugrunde liegende Problem bereits anderweitig behoben wurde (z.B. manuell per CLI-Skript).')) return;
+    knopf.disabled = true;
+    try {
+        const res = await fetch('admin-api.php?action=monatswechselWartungAus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+    } finally {
+        knopf.disabled = false;
+    }
+    laden();
+}
+
+async function analyseJetztAusloesen(knopf) {
+    knopf.disabled = true;
+    knopf.textContent = 'Sende …';
+    const berichtTyp = knopf.closest('.analyse-status').querySelector('#analyse-trigger-typ')?.value ?? 'woche';
+    try {
+        const res = await fetch('admin-api.php?action=analyseTrigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csrf: CSRF, berichtTyp }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        if (!daten.ok) {
+            alert(daten.grund === 'budget'
+                ? `Budget-Guard aktiv -- nächster Lauf erst ab ${new Date(daten.naechsterErlaubterZeitpunkt).toLocaleString('de-DE')} möglich.`
+                : `Trigger abgelehnt: ${ergebnisText(daten.grund)}.`);
+            knopf.disabled = false;
+            knopf.textContent = 'Jetzt auslösen';
+            return;
+        }
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+        knopf.disabled = false;
+        knopf.textContent = 'Jetzt auslösen';
+        return;
+    }
+    // Erfolgreich angestoßen -- laden() zeigt "ausstehend" + startet das Polling.
+    laden();
+}
+
+async function speichern(bereich, knopf) {
+    const karte = knopf.closest('.karte-ki');
+    const status = karte.querySelector('.speichern-status');
+    const werte = {};
+
+    karte.querySelectorAll('[data-feld]').forEach((el) => {
+        const feld = el.dataset.feld;
+        if (el.type === 'checkbox') {
+            werte[feld] = el.checked;
+        } else if (el.tagName === 'SELECT') {
+            werte[feld] = el.value;
+        } else {
+            const faktor = Number(el.dataset.faktor || 1);
+            werte[feld] = Number(el.value) * faktor;
+        }
+    });
+
+    knopf.disabled = true;
+    status.textContent = 'Speichere …';
+    status.className = 'speichern-status';
+
+    try {
+        const res = await fetch('admin-api.php?action=schreiben', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bereich, werte, csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        status.textContent = 'Gespeichert -- Controller übernimmt binnen 30s.';
+        status.className = 'speichern-status ok';
+    } catch (e) {
+        status.textContent = 'Fehler: ' + e.message;
+        status.className = 'speichern-status fehler';
+    } finally {
+        knopf.disabled = false;
+    }
+}
+
+// -- System-/Server-Steuerung (AP16c) --------------------------------------------------
+// System-Status (CPU/RAM/Platte/Map/Spieler) und Ereignis-Log kommen bewusst aus der
+// oeffentlichen, unauthentifizierten api.php (dieselben Daten wie auf index.html) --
+// keine Dopplung in admin-api.php. Nur das Ausloesen von Serverbefehlen (Skip/Restart/...)
+// braucht die authentifizierte admin-api.php.
+
+async function ladeOeffentlicheApi(action, params = {}) {
+    const qs = new URLSearchParams({ action, ...params }).toString();
+    const res = await fetch(`api.php?${qs}`);
+    const daten = await res.json();
+    if (daten.error) throw new Error(daten.error);
+    return daten;
+}
+
+function balkenKlasse(prozent) {
+    if (prozent >= 90) return 'kritisch';
+    if (prozent >= 75) return 'warnung';
+    return '';
+}
+
+async function ladeSystem() {
+    const el = document.getElementById('system-karten');
+    let live;
+    try {
+        live = await ladeOeffentlicheApi('live');
+    } catch (e) {
+        el.innerHTML = `<div class="panel"><div class="error">Systemstatus nicht ladbar: ${sanitize(e.message)}</div></div>`;
+        return;
+    }
+
+    const sys = live.system ?? {};
+    const srv = live.server ?? {};
+    const cpu = Math.min(100, sys.cpuPercent ?? 0);
+    const ram = Math.min(100, sys.ramPercent ?? 0);
+    const platte = sys.plattePercent != null ? Math.min(100, sys.plattePercent) : null;
+
+    const laufzeitText = srv.controllerLaeuftSeit
+        ? (() => {
+            const minuten = Math.max(0, Math.floor((Date.now() - new Date(srv.controllerLaeuftSeit).getTime()) / 60000));
+            const h = Math.floor(minuten / 60), m = minuten % 60;
+            return h ? `${h}h ${m}m` : `${m} Min`;
+        })()
+        : '—';
+
+    const spielerNamen = (live.onlineSpieler ?? []);
+
+    el.innerHTML = `
+    <div class="panel">
+        <div class="panel-header">
+            <h2><span class="aktuell-punkt ${live.aktuell ? '' : 'veraltet'}"></span>Live-Status</h2>
+        </div>
+        <div class="system-stat-row">
+            <div class="kopf"><span>CPU</span><span class="wert">${cpu.toFixed(1)} %</span></div>
+            <div class="balken-spur"><div class="balken-fuellung ${balkenKlasse(cpu)}" style="width:${cpu}%"></div></div>
+        </div>
+        <div class="system-stat-row">
+            <div class="kopf"><span>RAM</span><span class="wert">${sys.ramUsedMb ?? '?'} / ${sys.ramTotalMb ?? '?'} MB</span></div>
+            <div class="balken-spur"><div class="balken-fuellung ${balkenKlasse(ram)}" style="width:${ram}%"></div></div>
+        </div>
+        ${platte != null ? `
+        <div class="system-stat-row">
+            <div class="kopf"><span>Platte</span><span class="wert">${sys.platteUsedGb} / ${sys.platteTotalGb} GB</span></div>
+            <div class="balken-spur"><div class="balken-fuellung ${balkenKlasse(platte)}" style="width:${platte}%"></div></div>
+        </div>` : ''}
+        <div class="system-kleine-stats">
+            <div class="kleine-stat accent"><h4>Spieler</h4><div class="wert">${srv.maxSpieler ? `${srv.spielerAnzahl} / ${srv.maxSpieler}` : (srv.spielerAnzahl ?? 0)}</div></div>
+            <div class="kleine-stat"><h4>Controller aktiv seit</h4><div class="wert" style="font-size:13px">${laufzeitText}</div></div>
+        </div>
+        <div class="spieler-online-liste">${spielerNamen.length ? 'Online: ' + spielerNamen.map(sanitize).join(', ') : 'Niemand online'}</div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>🗺️ Aktuelle Karte</h2></div>
+        ${live.map ? `
+            <div class="feld-zeile"><div class="feld-label">Name</div><div>${sanitize(live.map.name)}</div></div>
+            <div class="feld-zeile"><div class="feld-label">Autor</div><div>${sanitize(live.map.author)}</div></div>
+        ` : '<div class="feld-hinweis">Keine Karte aktiv (Server offline?).</div>'}
+    </div>`;
+}
+
+let steuerungKartenGerendert = false;
+
+function renderSteuerungKarten() {
+    if (steuerungKartenGerendert) return;
+    steuerungKartenGerendert = true;
+    document.getElementById('steuerung-karten').innerHTML = `
+    <div class="panel">
+        <div class="panel-header"><h2>🏁 Strecke</h2></div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-btn-reihe">
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('skip', {}, this)">⏭️ Überspringen</button>
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('restart', {}, this)">🔁 Neu starten</button>
+            </div>
+        </div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-btn-reihe">
+                <input class="steuerung-input" type="number" id="extend-sekunden" value="300" min="10" max="3600" step="10">
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('extend', {sekunden:Number(document.getElementById('extend-sekunden').value)}, this)">⏱️ Zeit verlängern</button>
+            </div>
+        </div>
+        <div class="steuerung-feedback" id="fb-strecke"></div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>🎵 Jukebox &amp; MatchSettings</h2></div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-btn-reihe">
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('jukeboxClear', {}, this)">🎵 Jukebox leeren</button>
+            </div>
+        </div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-btn-reihe">
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('modeSave', {}, this)">💾 Speichern</button>
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('modeRead', {}, this)">📖 Neu einlesen</button>
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('modeReset', {}, this)">↩️ Zurücksetzen</button>
+            </div>
+        </div>
+        <div class="steuerung-feedback" id="fb-jukebox"></div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>🗺️ Karten</h2></div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-gruppe-titel">Per TMX-ID hinzufügen</div>
+            <div class="steuerung-btn-reihe">
+                <input class="steuerung-input" type="number" id="tmx-id" placeholder="TMX-ID" min="1">
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('mapTmx', {tmxId:Number(document.getElementById('tmx-id').value)}, this)">➕ Hinzufügen</button>
+            </div>
+        </div>
+        <div class="steuerung-gruppe">
+            <div class="steuerung-gruppe-titel">Karte entfernen</div>
+            <div class="steuerung-btn-reihe">
+                <select class="feld-eingabe" id="karten-auswahl" style="min-width:180px"><option>Lade …</option></select>
+                <button class="steuerung-btn" type="button" onclick="steuerungBefehl('mapEntfernen', {uid:document.getElementById('karten-auswahl').value}, this)">➖ Entfernen</button>
+            </div>
+        </div>
+        <div class="steuerung-feedback" id="fb-karten"></div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>⚠️ Gefahrenzone</h2></div>
+        <div class="steuerung-gruppe">
+            <div class="feld-hinweis">Beendet den Controller-Prozess vollständig -- muss danach manuell (am Server) neu gestartet werden.</div>
+            <div class="steuerung-btn-reihe" style="margin-top:10px">
+                <button class="steuerung-btn gefahr" type="button" onclick="shutdownAusloesen(this)">⛔ Controller herunterfahren</button>
+            </div>
+        </div>
+        <div class="steuerung-feedback" id="fb-gefahr"></div>
+    </div>`;
+}
+
+async function ladeKarten() {
+    const select = document.getElementById('karten-auswahl');
+    try {
+        const karten = await ladeOeffentlicheApi('maps');
+        karten.sort((a, b) => a.name.localeCompare(b.name));
+        select.innerHTML = karten.map((k) => `<option value="${sanitize(k.uid)}">${sanitize(k.name)}</option>`).join('');
+    } catch (e) {
+        select.innerHTML = '<option>Fehler beim Laden</option>';
+    }
+}
+
+async function steuerungBefehl(befehl, parameter, knopf) {
+    const karte = knopf.closest('.panel');
+    const feedback = karte.querySelector('.steuerung-feedback');
+    const alleKnoepfe = karte.querySelectorAll('button');
+    alleKnoepfe.forEach((b) => b.disabled = true);
+    feedback.textContent = 'Sende …';
+    feedback.className = 'steuerung-feedback';
+
+    try {
+        const res = await fetch('admin-api.php?action=serverBefehl', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ befehl, parameter, csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        feedback.textContent = 'Befehl gesendet -- wird in Kürze ausgeführt (siehe Ereignis-Log).';
+        feedback.className = 'steuerung-feedback ok';
+        if (befehl === 'mapTmx' || befehl === 'mapEntfernen') setTimeout(ladeKarten, 12000);
+    } catch (e) {
+        feedback.textContent = 'Fehler: ' + e.message;
+        feedback.className = 'steuerung-feedback fehler';
+    } finally {
+        alleKnoepfe.forEach((b) => b.disabled = false);
+    }
+}
+
+function shutdownAusloesen(knopf) {
+    if (!confirm('Controller wirklich vollständig herunterfahren? Er muss danach manuell am Server neu gestartet werden.')) return;
+    if (!confirm('Letzte Bestätigung: Controller JETZT herunterfahren?')) return;
+    steuerungBefehl('shutdown', { bestaetigt: true }, knopf);
+}
+
+let letzteLogId = null;
+let logAutoScroll = true;
+
+function pruefeAutoScrollPosition() {
+    const el = document.getElementById('log-liste');
+    logAutoScroll = (el.scrollHeight - el.scrollTop - el.clientHeight) < 40;
+}
+
+async function ladeLog() {
+    try {
+        const eintraege = await ladeOeffentlicheApi('serverLog', letzteLogId ? { seitId: letzteLogId } : {});
+        if (!eintraege.length) return;
+
+        const el = document.getElementById('log-liste');
+        if (el.dataset.leer === '1') { el.innerHTML = ''; delete el.dataset.leer; }
+
+        eintraege.forEach((e) => {
+            const div = document.createElement('div');
+            div.className = `log-eintrag log-${e.typ}`;
+            const zeit = e.zeit ? new Date(e.zeit).toLocaleTimeString('de-DE') : '';
+            div.innerHTML = `<span class="log-zeit">${zeit}</span><span class="log-text">${sanitize(e.text)}</span>`;
+            el.appendChild(div);
+            letzteLogId = e.id;
+        });
+
+        while (el.children.length > 200) el.removeChild(el.firstChild);
+        if (logAutoScroll) el.scrollTop = el.scrollHeight;
+    } catch (e) { /* naechster Poll versucht es erneut */ }
+}
+
+document.getElementById('log-liste').addEventListener('scroll', pruefeAutoScrollPosition);
+
+// -- Telegram-Verknüpfungen (AP16c) ------------------------------------------------------
+// Personenbezogen (Telegram-Username), deshalb bewusst NICHT über die öffentliche api.php --
+// eigene, authentifizierte Aktionen in admin-api.php.
+
+async function ladeTelegram() {
+    const tbody = document.querySelector('#telegram-tabelle tbody');
+    let links;
+    try {
+        const res = await fetch('admin-api.php?action=telegramVerknuepfungen');
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        links = await res.json();
+        if (links.error) throw new Error(links.error);
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="4" class="error">Fehler beim Laden: ${sanitize(e.message)}</td></tr>`;
+        return;
+    }
+
+    if (!links.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="feld-hinweis">Keine Verknüpfungen vorhanden.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = links.map((l) => `
+        <tr data-id="${sanitize(l.id)}">
+            <td>${sanitize(l.name)}</td>
+            <td>${l.telegramUsername ? '@' + sanitize(l.telegramUsername) : '<span class="feld-hinweis">unbekannt</span>'}</td>
+            <td class="zahl">${l.linkedAt ? new Date(l.linkedAt).toLocaleString('de-DE') : '—'}</td>
+            <td><button class="loesen-btn" type="button" onclick="telegramLoesen('${sanitize(l.id)}', this)">Lösen</button></td>
+        </tr>`).join('');
+}
+
+async function telegramLoesen(id, knopf) {
+    if (!confirm('Diese Telegram-Verknüpfung wirklich lösen? Der Spieler müsste sich danach mit /link neu verknüpfen.')) return;
+    knopf.disabled = true;
+    knopf.textContent = 'Löse …';
+    try {
+        const res = await fetch('admin-api.php?action=telegramLoesen', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, csrf: CSRF }),
+        });
+        if (res.status === 401) { window.location.href = 'admin-login.php'; return; }
+        const daten = await res.json();
+        if (daten.error) throw new Error(daten.error);
+        knopf.closest('tr').remove();
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+        knopf.disabled = false;
+        knopf.textContent = 'Lösen';
+    }
+}
+
+renderSteuerungKarten();
+ladeKarten();
+ladeSystem();
+ladeLog();
+ladeTelegram();
+setInterval(ladeSystem, 5000);
+setInterval(ladeLog, 5000);
+
+laden();
+</script>
+</body>
+</html>

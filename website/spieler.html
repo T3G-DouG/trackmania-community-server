@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spielerprofil · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+    <style>
+        .profil-name { font-family:var(--font-display); font-size:28px; font-weight:700; color:#fff; margin-bottom:4px; }
+
+        .abzeichen-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:12px; margin-bottom:12px; }
+        .abzeichen-karte { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px 14px; text-align:center; transition:transform .2s; }
+        .abzeichen-karte.erreicht { border-color:var(--gold); box-shadow:0 0 0 1px rgba(var(--gold-rgb),0.25); }
+        .abzeichen-karte.erreicht:hover { transform:translateY(-2px); }
+        .abzeichen-karte.gesperrt { opacity:.45; filter:grayscale(1); }
+        .abzeichen-icon { font-size:30px; margin-bottom:8px; line-height:1; }
+        .abzeichen-icon-sprite {
+            width:64px; height:64px; margin:0 auto 8px; border-radius:50%; background-repeat:no-repeat;
+        }
+        .abzeichen-name { font-family:var(--font-display); font-weight:700; font-size:13px; color:#fff; margin-bottom:4px; }
+        .abzeichen-beschreibung { font-size:11px; color:var(--text-dim); line-height:1.4; }
+        .abzeichen-datum { font-family:var(--mono); font-size:10px; color:var(--gold); margin-top:8px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Verbindung wird hergestellt …</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item" href="analysen.html">📊 Analysen</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">👤 Spielerprofil</div>
+    <div class="profil-name" id="profil-name">Lade …</div>
+
+    <!-- ── ABZEICHEN ───────────────────────────────────────────── -->
+    <div class="abschnitt-titel">
+        <h2>🏅 Abzeichen</h2>
+        <span class="sub" id="abzeichen-sub"></span>
+    </div>
+    <div class="abzeichen-grid" id="abzeichen-grid">
+        <div class="loading">Lade Abzeichen …</div>
+    </div>
+
+    <!-- ── LIVE (AKTUELLER MONAT) ─────────────────────────────── -->
+    <div class="abschnitt-titel">
+        <h2><span class="live-dot"></span>Live — Aktueller Monat</h2>
+        <span class="sub" id="live-sub"></span>
+    </div>
+    <div id="live-inhalt">
+        <div class="kleine-stats-grid">
+            <div class="kleine-stat gold"><h4>Rang</h4><div class="wert" id="live-rang">—</div></div>
+            <div class="kleine-stat accent"><h4>Punkte</h4><div class="wert" id="live-punkte">—</div></div>
+            <div class="kleine-stat green"><h4>Siege</h4><div class="wert" id="live-siege">—</div></div>
+            <div class="kleine-stat"><h4>Maps gespielt</h4><div class="wert" id="live-maps">—</div></div>
+        </div>
+    </div>
+
+    <!-- ── MONATSPERFORMANCE (HISTORIE) ───────────────────────── -->
+    <div class="abschnitt-titel">
+        <h2>📅 Monatsperformance</h2>
+        <span class="sub" id="monat-sub"></span>
+    </div>
+    <div class="kleine-stats-grid">
+        <div class="kleine-stat accent"><h4>Ø Punkte/Monat</h4><div class="wert" id="stat-avg-punkte">—</div></div>
+        <div class="kleine-stat gold"><h4>Beste Platzierung</h4><div class="wert" id="stat-beste-platzierung" style="font-size:18px">—</div></div>
+        <div class="kleine-stat"><h4>Monate gespielt</h4><div class="wert" id="stat-monate">—</div></div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>📊 Punkte pro Monat</h2></div>
+        <div class="chart-wrap"><svg id="balken-chart" width="700" height="240" viewBox="0 0 700 240"></svg></div>
+    </div>
+    <div class="panel">
+        <div class="panel-header"><h2>🏅 Rang-Verlauf</h2></div>
+        <div class="chart-wrap"><svg id="rang-chart" width="700" height="220" viewBox="0 0 700 220"></svg></div>
+    </div>
+    <div class="panel">
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Monat</th><th>Platz</th><th>Punkte</th><th>Maps gespielt</th><th>Siege</th></tr></thead>
+                <tbody id="tabelle-body"><tr><td colspan="5" class="loading">Lade Daten …</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── JAHRESPERFORMANCE ──────────────────────────────────── -->
+    <div class="abschnitt-titel">
+        <h2>🗓️ Jahresperformance</h2>
+    </div>
+    <div class="panel">
+        <div class="chart-wrap"><svg id="jahr-chart" width="700" height="220" viewBox="0 0 700 220"></svg></div>
+    </div>
+    <div class="panel">
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Jahr</th><th>Rang</th><th>Punkte</th><th>Maps gespielt</th><th>Siege</th></tr></thead>
+                <tbody id="jahr-tabelle-body"><tr><td colspan="5" class="loading">Lade Daten …</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── OVERALL / HALL OF FAME ─────────────────────────────── -->
+    <div class="abschnitt-titel">
+        <h2>👑 Hall of Fame (Overall)</h2>
+        <span class="sub" id="hof-sub"></span>
+    </div>
+    <div class="kleine-stats-grid">
+        <div class="kleine-stat gold"><h4>Gesamtrang</h4><div class="wert" id="hof-rang">—</div></div>
+        <div class="kleine-stat accent"><h4>Gesamtpunkte</h4><div class="wert" id="hof-punkte">—</div></div>
+        <div class="kleine-stat green"><h4>Gesamtsiege</h4><div class="wert" id="hof-siege">—</div></div>
+        <div class="kleine-stat"><h4>Maps gesamt</h4><div class="wert" id="hof-maps">—</div></div>
+        <div class="kleine-stat blue"><h4>Spielzeit</h4><div class="wert" id="stat-spielzeit">—</div></div>
+        <div class="kleine-stat"><h4>Finishes</h4><div class="wert" id="stat-finishes">—</div></div>
+        <div class="kleine-stat"><h4>Checkpoints</h4><div class="wert" id="stat-checkpoints">—</div></div>
+        <div class="kleine-stat"><h4>Verbindungen</h4><div class="wert" id="stat-connections">—</div></div>
+        <div class="kleine-stat"><h4>Ø CP / Finish</h4><div class="wert" id="stat-avg-cp" style="font-size:16px">—</div></div>
+        <div class="kleine-stat"><h4>Ø Zeit / Verbindung</h4><div class="wert" id="stat-avg-zeit" style="font-size:16px">—</div></div>
+    </div>
+</div>
+
+<script src="assets/app.js?v=9"></script>
+<script>
+// Zwei separate Sprite-Dateien statt eines gemeinsam neu berechneten Rasters -- eine
+// Rastergroessenaenderung wuerde ALLE bestehenden Positionen verschieben (siehe docs/CUP-PLAN.md),
+// das 3x3-Sprite der 9 neuen Abzeichen bekommt daher eine eigene, unabhaengige Positionstabelle
+// statt das bestehende 6x3-Sprite umzubauen. Beide Dateien sind 1408x768px -- bei einem 3x3-Raster
+// ergeben sich daraus WEIT-RECHTECKIGE Zellen (469x256, Seitenverhaeltnis 1.83:1), nicht quadratische
+// wie beim 6x3-Raster (234.67x256, Seitenverhaeltnis 0.92:1, nahezu quadratisch). Eine simple
+// prozentuale background-size (z.B. "300% 300%") skaliert X und Y unterschiedlich stark und
+// verzerrt runde Icons zu Ovalen -- baueSpriteStyle() unten skaliert stattdessen IMMER gleichmaessig
+// (derselbe Faktor in X und Y) und schneidet die groessere Zell-Dimension zentriert zu.
+const ABZEICHEN_SPRITES = {
+    original: { datei: 'assets/abzeichen-sprite.png', bildBreite: 1408, bildHoehe: 768, spalten: 6, zeilen: 3 },
+    zwei: { datei: 'assets/abzeichen-sprite_2.png', bildBreite: 1408, bildHoehe: 768, spalten: 3, zeilen: 3 },
+};
+// Spalte/Zeile jedes Abzeichens innerhalb SEINES Sprites (sprite-Schluessel siehe ABZEICHEN_SPRITES oben).
+const ABZEICHEN_ICON_POSITION = {
+    monatsmeister: { sprite: 'original', spalte: 0, zeile: 0 }, hattrick: { sprite: 'original', spalte: 1, zeile: 0 },
+    jahresmeister: { sprite: 'original', spalte: 2, zeile: 0 }, durchmarsch: { sprite: 'original', spalte: 3, zeile: 0 },
+    marathonfahrer: { sprite: 'original', spalte: 4, zeile: 0 }, platzhirsch: { sprite: 'original', spalte: 5, zeile: 0 },
+    podestfahrer: { sprite: 'original', spalte: 0, zeile: 1 }, serienfinisher: { sprite: 'original', spalte: 1, zeile: 1 },
+    ziellinienlegende: { sprite: 'original', spalte: 2, zeile: 1 }, checkpointsammler: { sprite: 'original', spalte: 3, zeile: 1 },
+    rundumdieuhr: { sprite: 'original', spalte: 4, zeile: 1 }, inventar: { sprite: 'original', spalte: 5, zeile: 1 },
+    stammgast: { sprite: 'original', spalte: 0, zeile: 2 }, streckenkritiker: { sprite: 'original', spalte: 1, zeile: 2 },
+    nachtschwaermer: { sprite: 'original', spalte: 2, zeile: 2 }, einsamerwolf: { sprite: 'original', spalte: 3, zeile: 2 },
+    lastminutehero: { sprite: 'original', spalte: 4, zeile: 2 }, wimpernschlag: { sprite: 'original', spalte: 5, zeile: 2 },
+
+    // versatzX/versatzY: die 9 Icons im 3x3-Sprite sitzen NICHT exakt in der geometrischen
+    // Zellenmitte (das Layout hat ungleiche Aussen-/Innenabstaende) -- per Canvas-Pixelanalyse
+    // (dunkle Medaillon-Flaeche je Zelle, siehe docs/SYSTEM.md) gemessene Abweichung von der
+    // Zellenmitte in Original-Bildpixeln, wird in baueSpriteStyle() vor der Skalierung addiert.
+    kellerkind: { sprite: 'zwei', spalte: 0, zeile: 0, versatzX: 85, versatzY: 25 },
+    vierjahreszeiten: { sprite: 'zwei', spalte: 1, zeile: 0, versatzX: -3, versatzY: 25 },
+    jahresfahrer: { sprite: 'zwei', spalte: 2, zeile: 0, versatzX: -88, versatzY: 25 },
+    ewigerzweiter: { sprite: 'zwei', spalte: 0, zeile: 1, versatzX: 92, versatzY: 0 },
+    willkommenskomitee: { sprite: 'zwei', spalte: 1, zeile: 1, versatzX: 0, versatzY: 0 },
+    rueckkehrer: { sprite: 'zwei', spalte: 2, zeile: 1, versatzX: -88, versatzY: 0 },
+    dauerbrenner: { sprite: 'zwei', spalte: 0, zeile: 2, versatzX: 90, versatzY: -5 },
+    fairerwertrichter: { sprite: 'zwei', spalte: 1, zeile: 2, versatzX: 0, versatzY: 3 },
+    sofortigerevanche: { sprite: 'zwei', spalte: 2, zeile: 2, versatzX: -84, versatzY: 0 },
+};
+
+/**
+ * Baut background-image/-size/-position fuer eine unverzerrte, mittig zugeschnittene Sprite-Zelle.
+ * Skaliert das GESAMTE Sprite-Bild mit EINEM gemeinsamen Faktor (kein separates X/Y-Stretching,
+ * das runde Icons zu Ovalen verzerren wuerde) -- der Faktor richtet sich nach der KLEINEREN
+ * Zell-Dimension, damit die Zelle die Zielgroesse mindestens ausfuellt; die groessere Dimension
+ * wird dabei zentriert zugeschnitten (wie CSS background-size:cover, nur pro Rasterzelle).
+ * `versatzX`/`versatzY` (Original-Bildpixel, optional) verschieben das Zentrum zusaetzlich, falls
+ * das Icon nicht exakt in der geometrischen Zellenmitte sitzt.
+ * @param {{sprite:string, spalte:number, zeile:number, versatzX?:number, versatzY?:number}|undefined} eintrag
+ * @param {number} zielGroesse Zielbreite/-hoehe in px (quadratische Kachel)
+ */
+function baueSpriteStyle(eintrag, zielGroesse) {
+    const sprite = ABZEICHEN_SPRITES[eintrag?.sprite ?? 'original'];
+    const spalte = eintrag?.spalte ?? 0, zeile = eintrag?.zeile ?? 0;
+    const versatzX = eintrag?.versatzX ?? 0, versatzY = eintrag?.versatzY ?? 0;
+    const zellBreite = sprite.bildBreite / sprite.spalten;
+    const zellHoehe = sprite.bildHoehe / sprite.zeilen;
+    const skala = zielGroesse / Math.min(zellBreite, zellHoehe);
+    const bgBreite = sprite.bildBreite * skala;
+    const bgHoehe = sprite.bildHoehe * skala;
+    const zellBreiteSkaliert = zellBreite * skala;
+    const zellHoeheSkaliert = zellHoehe * skala;
+    const x = -(spalte * zellBreiteSkaliert + (zellBreiteSkaliert - zielGroesse) / 2 + versatzX * skala);
+    const y = -(zeile * zellHoeheSkaliert + (zellHoeheSkaliert - zielGroesse) / 2 + versatzY * skala);
+    return `background-image:url('${sprite.datei}');background-size:${bgBreite.toFixed(2)}px ${bgHoehe.toFixed(2)}px;`
+        + `background-position:${x.toFixed(2)}px ${y.toFixed(2)}px`;
+}
+
+function renderErrungenschaften(liste, gesamt) {
+    const erreichtAnzahl = liste.filter((e) => e.erreicht).length;
+    document.getElementById('abzeichen-sub').textContent = `${erreichtAnzahl} / ${gesamt} freigeschaltet`;
+
+    const grid = document.getElementById('abzeichen-grid');
+    if (!liste.length) {
+        grid.innerHTML = '<div class="no-records">Noch keine Abzeichen im Katalog</div>';
+        return;
+    }
+    grid.innerHTML = liste.map((e) => {
+        if (e.geheim && !e.erreicht) {
+            return `<div class="abzeichen-karte gesperrt">
+                <div class="abzeichen-icon">❓</div>
+                <div class="abzeichen-name">???</div>
+                <div class="abzeichen-beschreibung">Geheimes Abzeichen — finde selbst heraus, wie du es freischaltest.</div>
+            </div>`;
+        }
+        const datum = e.erreichtAm ? new Date(e.erreichtAm).toLocaleDateString('de-DE') : '';
+        const spriteStyle = baueSpriteStyle(ABZEICHEN_ICON_POSITION[e.id], 64);
+        return `<div class="abzeichen-karte ${e.erreicht ? 'erreicht' : 'gesperrt'}">
+            <div class="abzeichen-icon-sprite" style="${spriteStyle}"></div>
+            <div class="abzeichen-name">${sanitize(e.name)}</div>
+            <div class="abzeichen-beschreibung">${sanitize(e.beschreibung)}</div>
+            ${e.erreicht ? `<div class="abzeichen-datum">${datum}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+
+async function laden() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) {
+        document.getElementById('profil-name').textContent = 'Kein Spieler angegeben';
+        return;
+    }
+    try {
+        const daten = await ladeApi('spieler', { id });
+        setConnectionStatus(true);
+        await pruefeServerErreichbarkeit();
+        document.getElementById('profil-name').textContent = daten.name;
+        renderErrungenschaften(daten.errungenschaften ?? [], daten.errungenschaftenGesamt ?? 0);
+
+        // Live (aktueller Monat)
+        if (daten.live) {
+            document.getElementById('live-sub').textContent = `von ${daten.live.teilnehmer} Spielern`;
+            document.getElementById('live-rang').textContent = `#${daten.live.platz}`;
+            document.getElementById('live-punkte').textContent = daten.live.punkte.toLocaleString('de-DE');
+            document.getElementById('live-siege').textContent = daten.live.siege;
+            document.getElementById('live-maps').textContent = daten.live.mapsGespielt;
+        } else {
+            document.getElementById('live-inhalt').innerHTML = '<div class="no-records">Noch keine Zeiten diesen Monat gefahren</div>';
+        }
+
+        // Overall / Hall of Fame
+        if (daten.hof) {
+            document.getElementById('hof-rang').textContent = `#${daten.hof.rang}`;
+            document.getElementById('hof-sub').textContent = `von ${daten.hof.teilnehmer} Spielern`;
+            document.getElementById('hof-punkte').textContent = daten.hof.punkte.toLocaleString('de-DE');
+            document.getElementById('hof-siege').textContent = daten.hof.siege;
+            document.getElementById('hof-maps').textContent = daten.hof.mapsGespielt;
+        }
+        const stats = daten.stats ?? {};
+        document.getElementById('stat-spielzeit').textContent = formatSpielzeit(stats.timePlayed ?? 0);
+        document.getElementById('stat-finishes').textContent = (stats.finishes ?? 0).toLocaleString('de-DE');
+        document.getElementById('stat-checkpoints').textContent = (stats.checkpoints ?? 0).toLocaleString('de-DE');
+        document.getElementById('stat-connections').textContent = (stats.connections ?? 0).toLocaleString('de-DE');
+        document.getElementById('stat-avg-cp').textContent = stats.finishes ? (stats.checkpoints / stats.finishes).toFixed(1) : '—';
+        document.getElementById('stat-avg-zeit').textContent = stats.connections ? formatSpielzeit(Math.round(stats.timePlayed / stats.connections)) : '—';
+
+        // Jahresperformance
+        zeichneBalken('jahr-chart', daten.jahresVerlauf, { xKey: 'jahr', yKey: 'punkte', farbe: 'var(--accent)' });
+        const jahrTbody = document.getElementById('jahr-tabelle-body');
+        jahrTbody.innerHTML = daten.jahresVerlauf.length
+            ? daten.jahresVerlauf.slice().reverse().map((j) => `
+                <tr><td>${j.jahr}</td><td class="rank">#${j.platz} / ${j.teilnehmer}</td><td class="points">${j.punkte.toLocaleString('de-DE')}</td><td>${j.mapsGespielt}</td><td class="wins-cell">${j.siege}</td></tr>`).join('')
+            : '<tr><td colspan="5" class="no-records">Noch keine abgeschlossenen Jahre</td></tr>';
+
+        // Monatsperformance
+        const gesamtPunkteMonate = daten.verlauf.reduce((s, v) => s + v.punkte, 0);
+        document.getElementById('monat-sub').textContent = daten.verlauf.length ? `${daten.verlauf.length} Monate erfasst` : '';
+        document.getElementById('stat-avg-punkte').textContent = daten.verlauf.length
+            ? Math.round(gesamtPunkteMonate / daten.verlauf.length).toLocaleString('de-DE')
+            : '—';
+        const bestePlatzierung = daten.verlauf.length ? Math.min(...daten.verlauf.map((v) => v.platz)) : null;
+        document.getElementById('stat-beste-platzierung').textContent = bestePlatzierung ? `#${bestePlatzierung}` : '—';
+        document.getElementById('stat-monate').textContent = daten.verlauf.length;
+
+        zeichneBalken('balken-chart', daten.verlauf, { xKey: 'monat', yKey: 'punkte', xLabel: (v) => monatKurzLabel(v.monat), farbe: 'var(--accent2)' });
+        zeichneRangVerlauf('rang-chart', daten.verlauf);
+
+        const tbody = document.getElementById('tabelle-body');
+        tbody.innerHTML = daten.verlauf.length
+            ? daten.verlauf.slice().reverse().map((v) => `
+                <tr><td>${sanitize(parseSaisonToken(v.monat)?.label ?? v.monat)}</td><td class="rank">#${v.platz} / ${v.teilnehmer}</td><td class="points">${v.punkte.toLocaleString('de-DE')}</td><td>${v.mapsGespielt}</td><td class="wins-cell">${v.siege}</td></tr>`).join('')
+            : '<tr><td colspan="5" class="no-records">Noch keine Monate</td></tr>';
+    } catch (e) {
+        setConnectionStatus(false);
+        document.getElementById('profil-name').textContent = 'Fehler beim Laden';
+        document.getElementById('tabelle-body').innerHTML = `<tr><td colspan="5" class="error">${sanitize(e.message)}</td></tr>`;
+    }
+}
+laden();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "Community-Cup #1",
+  "format": "phasenko",
+  "geplanterStart": "2026-08-15T19:00:00.000Z",
+  "maps": [
+    "Campaigns/Training/Training - 01.Map.Gbx",
+    "Campaigns/Training/Training - 02.Map.Gbx",
+    "Campaigns/Training/Training - 03.Map.Gbx",
+    "Campaigns/Training/Training - 04.Map.Gbx"
+  ],
+  "punkteProRunde": [10, 6, 4, 3, 2, 1],
+  "formatConfig": {
+    "phasen": [
+      { "name": "Vorrunde", "rundenProMap": 1, "mapAnzahl": 2, "weiterkommen": 4 },
+      { "name": "Finale", "rundenProMap": 1, "mapAnzahl": 2, "weiterkommen": 1 }
+    ]
+  }
+}

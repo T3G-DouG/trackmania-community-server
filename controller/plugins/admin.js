@@ -1,0 +1,537 @@
+
+import { Sentences } from '../lib/sentences.js'
+import { logger, format, stripFormatting } from '../lib/utilities.js'
+import { protokolliere } from '../lib/eventLog.js'
+import { formuliereChatNachrichtUm, formuliereUm } from '../lib/kiEnrich.js'
+import { Settings } from '../settings.js'
+let dbtype = Settings.usedDatabase.toLocaleLowerCase();
+
+import * as Classes from '../lib/classes.js'
+import { NextControl } from '../nextcontrol.js'
+import { TMX } from '../lib/tmx.js'
+import {
+    kodiereAktion, dekodiereAktion, pruefeAdmin, schliesseMenue, ZURUECK_AKTION,
+    baueListenMenuXml, baueBestaetigungsXml
+} from '../lib/manialinkMenu.js'
+
+import * as fs from 'fs';
+import got from 'got';
+
+const AKTION_PRAEFIX = 'admin';
+/** Deckelt die "Karte entfernen"-Liste im Menue (keine Seitenumbruch-UI in AP17f-Erstfassung). */
+const ENTFERNEN_LISTE_MAX = 20;
+
+/**
+ * Plugin containing the most necessary administration commands and features
+ */
+export class AdminSuite {
+
+    /**
+     * Plugin name
+     */
+    name           = 'Admin-Werkzeuge'
+
+    /**
+     * Plugin author
+     */
+    author         = 'dassschaf'
+
+    /**
+     * Plugin description
+     */
+    description    = 'Enthält die wichtigsten Administrations-Kommandos und -Funktionen'
+
+    /**
+     * Local reference to the main instance
+     * @type {NextControl}
+     */
+    nextcontrol
+
+    /**
+     * Constructor, registering the chat commands at the main class upon plugin loading
+     * @param {NextControl} nextcontrol The script's brain we require to properly register the chat commands
+     */
+    constructor(nextcontrol) {
+        // register chat commands:
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('neustart', this.admin_restart, 'Startet die aktuelle Strecke sofort neu', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('skip', this.admin_skip, 'Überspringt die aktuelle Strecke sofort', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('hinzufuegen', this.admin_add, 'Fügt neue Karten von TMX, URL oder lokalem Pfad zum Server hinzu', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('beenden', this.admin_shutdown, 'Beendet NextControl', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('test', this.testcommand, 'Testkommando (Entwicklung)', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('entfernen', this.admin_remove, 'Entfernt eine ausgewählte Karte', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('verlaengern', this.admin_extend, 'Verlängert die Spielzeit um einen angegebenen Wert (Standard: 300s)', this.name));
+        nextcontrol.registerAdminCommand(new Classes.ChatCommand('modus', this.admin_mode, 'Verschiedene Kommandos zum Bearbeiten der MatchSettings', this.name));
+
+        // AP17e/f/g: Menue-Eintraege (alle admin-only). "//hinzufuegen <link>" bewusst NICHT
+        // im Menue (Tippfehler-Risiko bei langen TMX-URLs/Pfaden zu hoch fuer ein <entry>-Feld,
+        // bleibt dauerhaft nur Chat-Befehl -- siehe Plan AP17h). "//modus set <key> <value>"
+        // ebenso bewusst ausgelassen (offenes Key/Value-Editieren, geringer Nutzen fuer den
+        // Aufwand einer 2-Eingabefeld-Form in der Erstfassung).
+        const admin = (label, ...aktionsTeile) => new Classes.MenuEintrag(
+            'Admin · Server', label, kodiereAktion(AKTION_PRAEFIX, ...aktionsTeile), { adminOnly: true, pluginName: this.name }
+        );
+        nextcontrol.registerMenuEintrag(admin('Strecke neu starten', 'neustart'));
+        nextcontrol.registerMenuEintrag(admin('Strecke überspringen', 'skip'));
+        nextcontrol.registerMenuEintrag(admin('Zeit +60s', 'verlaengern', '60'));
+        nextcontrol.registerMenuEintrag(admin('Zeit +300s', 'verlaengern', '300'));
+        nextcontrol.registerMenuEintrag(admin('Zeit +600s', 'verlaengern', '600'));
+        nextcontrol.registerMenuEintrag(admin('MatchSettings speichern', 'modus', 'save'));
+        nextcontrol.registerMenuEintrag(admin('MatchSettings behalten (bis Neustart)', 'modus', 'keep'));
+        nextcontrol.registerMenuEintrag(admin('MatchSettings zurücksetzen', 'modus', 'reset'));
+        nextcontrol.registerMenuEintrag(admin('MatchSettings neu einlesen', 'modus', 'read'));
+        nextcontrol.registerMenuEintrag(admin('Karte entfernen', 'entfernen_form'));
+        nextcontrol.registerMenuEintrag(admin('Controller beenden', 'beenden_confirm'));
+
+        // save reference
+        this.nextcontrol = nextcontrol;
+    }
+
+    /**
+     * Test command... what'd you expect?
+     * @param {String} login 
+     * @param {Array<String>} params 
+     */
+    async testcommand(login, params) {
+        // currently testing: accessing the status
+        let map = this.nextcontrol.status.map;
+
+        console.log('Current map: ' + stripFormatting(map.name));
+    }
+
+    /**
+     * Function making the current map being restarted
+     * @param {String} login login of the calling player 
+     * @param {Array<String>} params parameters of the call
+     */
+    async admin_restart(login, params) {
+        // get title and player name
+        let name = this.nextcontrol.status.getPlayer(login).name;
+
+        const nameSauber = stripFormatting(name);
+
+        // restart!
+        await this.nextcontrol.client.query('RestartMap');
+        const msg = await formuliereChatNachrichtUm(format(Sentences.admin.restart, {name: name}), { pruefWoerter: [nameSauber], sprache: 'en' });
+        await this.nextcontrol.client.query('ChatSendServerMessage', [msg]);
+        const logText = await formuliereUm(`🔁 ${nameSauber} hat die Strecke neu gestartet`, { pruefWoerter: [nameSauber, '🔁'] });
+        await protokolliere(this.nextcontrol, 'admin', logText);
+    }
+
+    /**
+     * Function extending the currently played map's time
+     * @param {String} login login of the calling player
+     * @param {Array<String>} params parameters of the call
+     */
+    async admin_extend(login, params) {
+        // get title and player name
+        let name = this.nextcontrol.status.getPlayer(login).name,
+            time = 300;
+
+        // check if the gamemode supports extending the time
+        if (!this.nextcontrol.modeSettings.isTimeExtendable()) {
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.cannotExtend, login]);
+            return;
+        }
+
+        // override default time, if time is given
+        if (typeof params[0] !== 'undefined') {
+            if (isNaN(Number(params[0]))) {
+                // abort:
+                await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.invalidParams]);
+                return;
+            }
+
+            time = Number(params[0]);
+        }
+
+        // if the server returns false we got a problem
+        if (!await this.nextcontrol.modeSettings.extendTime(time)) {
+            // error!
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.extendError, login]);
+
+        // else, just notify chat and console
+        } else {
+            await this.nextcontrol.client.query('ChatSendServerMessage', [format(Sentences.admin.extended, {name: this.nextcontrol.status.getPlayer(login).name, time: time})]);
+            logger('r', 'Successfully extended time by ' + time + ' seconds.')
+        }
+    }
+
+    /**
+     * Function removing a selected map from the database and map rotation
+     * @param {String} login 
+     * @param {Array<String>} params 
+     */
+    async admin_remove(login, params) {
+        // check player's list first
+        if (!(this.nextcontrol.lists.maps.has(login) && this.nextcontrol.lists.maps.get(login).length > 0)) {
+            // abort:
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [format(Sentences.admin.requiresList, {type: 'Karten'})]);
+            return;
+        }
+
+        let id = Number(params[0])
+
+        // check if number is valid
+        if (isNaN(id)) {
+            // abort:
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.invalidParams]);
+            return;
+        }
+
+        // get the correct map from the player's list
+        let map = this.nextcontrol.lists.maps.get(login)[id];
+
+        // remove map from map rotation
+        await this.nextcontrol.client.query('RemoveMap', [map.file])
+
+        // send message
+        await this.nextcontrol.client.query('ChatSendServerMessage', [format(Sentences.admin.removed, {name: this.nextcontrol.status.getPlayer(login).name, map: map.name})]);
+    }
+
+    /**
+     * Match Settings tools command
+     * @param {String} login
+     * @param {Array<String>} params
+     * @returns {Promise<void>}
+     */
+    async admin_mode(login, params) {
+        // check parameters
+        if (params.length === 0) {
+            // not enough parameters
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.invalidParams, login]);
+            return;
+        }
+
+        // shift operation from array
+        let operation = params.shift();
+
+        if (operation === 'save') {
+            // save to match settings
+            await this.nextcontrol.modeSettings.saveSettingsToFile();
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.settingsSaved, login]);
+
+        } else if (operation === 'keep') {
+            // keep this until script/server restart
+            this.nextcontrol.modeSettings.keepTempSettings();
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.settingsKept, login]);
+
+        } else if (operation === 'reset') {
+            // reset to current default settings
+            await this.nextcontrol.modeSettings.resetSettings();
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.settingsReset, login]);
+
+        } else if (operation === 'read') {
+            // read match settings
+            await this.nextcontrol.modeSettings.readMatchSettings();
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.settingsRead, login]);
+
+        } else if (operation === 'set') {
+            // set a mode setting to a value
+            if (params.length === 2) {
+                let setting = params.shift(),
+                    value = params.shift().toString();
+
+                // add "S_" at the beginning of settings if there isn't one
+                if (!setting.startsWith('S_')) setting = "S_" + setting;
+
+                // adjust type of value
+                if (value.toLocaleLowerCase() === 'true' || value.toLocaleLowerCase() === 'false') value = Boolean(value);
+                else if (!isNaN(Number(value))) value = Number(value);
+                // else: keep string
+
+                let struct = {};
+                    struct[setting] = value;
+
+                await this.nextcontrol.client.query('SetModeScriptSettings', struct).catch(async err=>{
+                    // Report error
+                    await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [format(Sentences.errorMessage, {error: err.faultString}), login]);
+                });
+
+            } else {
+                // not enough parameters
+                await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.invalidParams, login]);
+            }
+        }
+    }
+
+    /**
+     * Function making the current map being skipped
+     * @param {String} login login of the calling player 
+     * @param {Array<String>} params parameters of the call
+     */
+    async admin_skip(login, params) {
+        // get title and player name
+        let name = this.nextcontrol.status.getPlayer(login).name;
+
+        const nameSauber = stripFormatting(name);
+
+        // skip & notify chat
+        await this.nextcontrol.client.query('NextMap');
+        const msg = await formuliereChatNachrichtUm(format(Sentences.admin.skip, {name: name}), { pruefWoerter: [nameSauber], sprache: 'en' });
+        await this.nextcontrol.client.query('ChatSendServerMessage', [msg]);
+        const logText = await formuliereUm(`⏭️ ${nameSauber} hat die Strecke übersprungen`, { pruefWoerter: [nameSauber, '⏭️'] });
+        await protokolliere(this.nextcontrol, 'admin', logText);
+    }
+
+    /**
+     * Shuts down the script.
+     * @param {String} login login of the calling player 
+     * @param {Array<String>} params parameters of the call
+     */
+    async admin_shutdown(login, params) {
+        // get title and player name
+        await this.nextcontrol.client.query('ChatSendServerMessage', [`$z$s$ff0~~ $fffShutting down...`]);
+        logger('w', 'Shutting down NextControl upon /admin shutdown!')
+
+        // shut down!
+        process.exit(0);
+    }
+
+    /**
+     * Function handling adding maps to the server
+     * @param {String} login login of the calling player 
+     * @param {Array<String>} params parameters of the call
+     */
+    async admin_add(login, params) {
+        // get title and player name
+        let player = this.nextcontrol.status.getPlayer(login);
+
+        // check parameters
+        if (params.length !== 2) {
+            // not enough parameters
+            await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.invalidParams, login]);
+            return;
+        }
+
+        // parameter order:
+        // 1: source: tmx, local, url
+        // 2: link or path or id
+        //      -> link if URL
+        //      -> path, relative to /Maps/ if local
+        //      -> id if TMX
+
+        let source = params.shift(),
+            link = params.shift();
+
+        // TMX:
+        if (source.toLocaleLowerCase() === 'tmx') {
+
+            // check if the ID is valid
+            if (isNaN(Number(link)) || isNaN(parseFloat(link))) {
+                await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.addTmxFailedInvalidID, player.login]);
+                return;
+            }
+
+            // save ID
+            let id = Number(link);
+
+            // get paths right
+            let directory = this.nextcontrol.status.directories.maps + '/TMX/',
+                filename = id + '.Map.Gbx';
+
+            // ensure the directory we save to exists
+            if (!fs.existsSync(directory)) fs.mkdirSync(directory);
+
+            // get url right
+            const url = TMX.site + '/maps/download/' + id;
+
+            // download map
+            const request = await got(url, {headers: TMX.headers, encoding: 'binary'});
+            const mapFile = request.rawBody;
+
+            // write map to the TMX folder
+            fs.writeFileSync(directory + filename, mapFile);
+
+            // get map info
+            let map = new Classes.Map(await this.nextcontrol.client.query('GetMapInfo', [directory + filename]));
+            map.setTMXId(id);
+
+            logger('r', 'Downloaded map ' + stripFormatting(map.name) + ' from TMX');
+
+            // add map to the map list
+            await this.addmapToServer(directory + filename, map)
+
+            // send info
+            await this.nextcontrol.client.query('ChatSendServerMessage', [format(Sentences.admin.addedTmx, {name: player.name, map: map.name})]);
+            logger('r', `${stripFormatting(map.name)} was downloaded from TMX (ID: ${id}) and added to the map list.`);
+        }
+
+        if (source.toLocaleLowerCase() === 'local') {
+            let directory = this.nextcontrol.status.directories.maps,
+                fullPath = directory + link;
+
+            // check if file exists in the first place
+            if (!fs.existsSync(fullPath)) {
+                await this.nextcontrol.client.query('ChatSendServerMessageToLogin', [Sentences.admin.addLocalFailedInvalidPth, login]);
+                return;
+            }
+
+            // get map info
+            let map = new Classes.Map(await this.nextcontrol.client.query('GetMapInfo', [fullPath]));
+            map.setTMXId(await TMX.getID(map.uid));
+
+            // add map to the map list
+            // add map to the map list
+            await this.addmapToServer(fullPath, map)
+
+            // send info
+            await this.nextcontrol.client.query('ChatSendServerMessage', [format(Sentences.admin.addedLocal, {name: player.name, map: map.name})]);
+            logger('r', `Local map ${stripFormatting(map.name)} (${link}) was added to the map list.`);
+        }
+
+        if (source.toLocaleLowerCase() === 'url') {
+
+            let directory = this.nextcontrol.status.directories.maps + '/URL/',
+                filename = link.split('/').pop();
+
+            // fix file name ending
+            if (!filename.endsWith('.Map.Gbx'))
+                filename += '.Map.Gbx';
+
+            // ensure the directory we save to exists
+            if (!fs.existsSync(directory)) fs.mkdirSync(directory);
+
+            // download map
+            const request = await got(link, {headers: TMX.headers, encoding: 'binary'});
+            const mapFile = request.rawBody;
+
+            // write map to the TMX folder
+            fs.writeFileSync(directory + filename, mapFile);
+
+            // get map info
+            let map = new Classes.Map(await this.nextcontrol.client.query('GetMapInfo', [directory + filename]));
+            map.setTMXId(await TMX.getID(map.uid));
+
+            // add map to the map list
+            await this.addmapToServer(directory + filename, map)
+
+            // send info
+            await this.nextcontrol.client.query('ChatSendServerMessage', [format(Sentences.admin.addedUrl, {
+                name: player.name,
+                map: map.name
+            })]);
+            logger('r', `${stripFormatting(map.name)} was downloaded from URL (${link}) and added to the map list.`);
+
+        }
+    }
+
+    /**
+     * Baut die "Karte entfernen"-Liste (aus nextcontrol.lists.maps, wie der bestehende
+     * //entfernen-Chatbefehl) und sendet sie als klickbare Zeilen. Populiert die Liste bei
+     * Bedarf ueber die Listen-Plugin-Instanz (Laufzeit-Methodenaufruf zwischen bereits
+     * instanzierten Plugins -- kein Modul-Import, siehe "Nie Plugins direkt importieren").
+     * @param {String} login
+     */
+    async sendeEntfernenListe(login) {
+        if (!this.nextcontrol.lists.maps.has(login) || this.nextcontrol.lists.maps.get(login).length === 0) {
+            const listenPlugin = this.nextcontrol.plugins.find(p => p.name === 'Listen');
+            if (listenPlugin) await listenPlugin.maps(login, []);
+        }
+
+        const alle = this.nextcontrol.lists.maps.get(login) ?? [];
+        const gezeigt = alle.slice(0, ENTFERNEN_LISTE_MAX);
+
+        const zeilen = gezeigt.map((map, i) => ({
+            label: `${i}. ${map.name}`,
+            aktion: kodiereAktion(AKTION_PRAEFIX, 'entfernen', String(i))
+        }));
+        if (alle.length > ENTFERNEN_LISTE_MAX) {
+            zeilen.push({ label: `... gekürzt (${ENTFERNEN_LISTE_MAX} von ${alle.length})`, aktion: ZURUECK_AKTION });
+        }
+        zeilen.push({ label: '« Zurück', aktion: ZURUECK_AKTION });
+
+        const xml = baueListenMenuXml({ titel: 'Karte entfernen', zeilen });
+        await this.nextcontrol.client.query('SendDisplayManialinkPageToLogin', [login, xml, 0, false]);
+    }
+
+    /**
+     * Function run, when a player clicks an Admin-Menue-Knopf. Jeder Zweig prueft
+     * pruefeAdmin() erneut (Verteidigung in der Tiefe -- ManiaLink-Klicks umgehen den
+     * Chat-Dispatcher-Security-Fix in nextcontrol.js komplett).
+     * @param {CallbackParams.ManialinkPageAnswer} params
+     */
+    async onManialinkPageAnswer(params) {
+        const { namespace, teile } = dekodiereAktion(params.answer);
+        if (namespace !== AKTION_PRAEFIX) return;
+
+        const login = params.login;
+        if (!pruefeAdmin(this.nextcontrol, login)) return;
+
+        const aktion = teile[0];
+
+        if (aktion === 'neustart') {
+            await this.admin_restart(login, []);
+            await schliesseMenue(this.nextcontrol, login);
+
+        } else if (aktion === 'skip') {
+            await this.admin_skip(login, []);
+            await schliesseMenue(this.nextcontrol, login);
+
+        } else if (aktion === 'verlaengern') {
+            await this.admin_extend(login, [teile[1]]);
+            await schliesseMenue(this.nextcontrol, login);
+
+        } else if (aktion === 'modus') {
+            await this.admin_mode(login, [teile[1]]);
+            await schliesseMenue(this.nextcontrol, login);
+
+        } else if (aktion === 'entfernen_form') {
+            await this.sendeEntfernenListe(login);
+
+        } else if (aktion === 'entfernen') {
+            await this.admin_remove(login, [teile[1]]);
+            await schliesseMenue(this.nextcontrol, login);
+
+        } else if (aktion === 'beenden_confirm') {
+            const xml = baueBestaetigungsXml({
+                titel: 'Controller beenden',
+                frage: 'Wirklich den Controller-Prozess sofort beenden?',
+                jaAktion: kodiereAktion(AKTION_PRAEFIX, 'beenden_ja'),
+                neinAktion: ZURUECK_AKTION
+            });
+            await this.nextcontrol.client.query('SendDisplayManialinkPageToLogin', [login, xml, 0, false]);
+
+        } else if (aktion === 'beenden_ja') {
+            await this.admin_shutdown(login, []);
+        }
+    }
+
+    /**
+     * Adds a map to the server
+     * @param path {String} absolute! path to the map
+     * @param map {Classes.Map} map object
+     * @returns {Promise<void>}
+     */
+    async addmapToServer(path, map) {
+        // add map
+        await this.nextcontrol.client.query('InsertMap', [path]);
+
+        // add map to the database
+        if (dbtype === 'mongodb') {
+            await this.nextcontrol.mongoDb.collection('maps').insertOne(map);
+
+            // volle TMX-Signale sofort cachen statt erst bei Bedarf (Karma-Voting) --
+            // fire-and-forget, blockiert den Admin-Befehl nicht.
+            TMX.aktualisiereCache(this.nextcontrol.mongoDb, map.uid);
+        } else if (dbtype === 'mysql') {
+            await this.nextcontrol.mysql.query('INSERT INTO maps VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', [
+                map.uid,
+                map.name,
+                map.file,
+                map.author,
+                map.mood,
+                map.medals,
+                map.coppers,
+                map.isMultilap,
+                map.nbLaps,
+                map.nbCheckpoints,
+                map.type,
+                map.style,
+                map.tmxid
+            ]).catch(err => {
+                logger('er', err)
+            });
+        }
+    }
+
+}

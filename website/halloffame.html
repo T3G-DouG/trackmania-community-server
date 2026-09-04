@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hall of Fame · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Verbindung wird hergestellt …</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item active" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item" href="analysen.html">📊 Analysen</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">👑 Hall of Fame — Allzeit <span class="last-updated" id="last-updated" style="margin-left:auto"></span></div>
+    <p style="color:var(--text-dim);font-size:13px;margin:-12px 0 16px">
+        Gesamtwertung über alle Monate seit Bestehen des Servers. Punkte, Siege und Maps
+        umfassen die komplette Historie; die Aktivitätswerte sind Lifetime-Zähler.
+    </p>
+
+    <div class="hinweis-banner" id="hinweis-banner"></div>
+
+    <div class="stats-grid">
+        <div class="stat-card green"><h3>Champion</h3><div class="value" id="stat-champion" style="font-size:18px">—</div></div>
+        <div class="stat-card"><h3>Spieler</h3><div class="value" id="s-players">—</div></div>
+        <div class="stat-card blue"><h3>Spielzeit</h3><div class="value" id="s-time">—</div></div>
+        <div class="stat-card green"><h3>Siege</h3><div class="value" id="s-wins">—</div></div>
+        <div class="stat-card"><h3>Punkte gesamt</h3><div class="value" id="s-punkte">—</div></div>
+        <div class="stat-card"><h3>Finishes gesamt</h3><div class="value" id="s-finishes">—</div></div>
+        <div class="stat-card"><h3>Checkpoints gesamt</h3><div class="value" id="s-checkpoints">—</div></div>
+        <div class="stat-card"><h3>Verbindungen gesamt</h3><div class="value" id="s-connections">—</div></div>
+    </div>
+
+    <div class="section-title">🗒️ Alle Spieler (nach Rang, Allzeit)</div>
+    <div class="suche-zeile">
+        <input type="text" id="suche" placeholder="Spieler suchen …" oninput="StatsView.rendern()">
+    </div>
+    <div class="panel">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Spieler</th>
+                        <th class="sortierbar" data-key="punkte" onclick="StatsView.sortiereNach('punkte')">Gesamtpunkte <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="siege" onclick="StatsView.sortiereNach('siege')">Siege <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="mapsGespielt" onclick="StatsView.sortiereNach('mapsGespielt')">Maps <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="timePlayed" onclick="StatsView.sortiereNach('timePlayed')">Spielzeit <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="finishes" onclick="StatsView.sortiereNach('finishes')">Finishes <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="checkpoints" onclick="StatsView.sortiereNach('checkpoints')">Checkpoints <span class="pfeil">▼</span></th>
+                        <th class="sortierbar" data-key="connections" onclick="StatsView.sortiereNach('connections')">Verbindungen <span class="pfeil">▼</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tabelle-body"><tr><td colspan="9" class="loading">Lade Daten …</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section-title">📊 Visualisierungen (Allzeit)</div>
+    <div class="charts-grid">
+        <div class="panel">
+            <div class="panel-header"><h2>⏱️ Spielzeit-Verteilung</h2></div>
+            <div class="chart-wrap"><svg id="chart-zeit" width="700"></svg></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>🥇 Punkte (Top 10)</h2></div>
+            <div class="chart-wrap"><svg id="chart-punkte" width="700"></svg></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>🏆 Siege (Top 10)</h2></div>
+            <div class="chart-wrap"><svg id="chart-siege" width="700"></svg></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>🏁 Finishes (Top 10)</h2></div>
+            <div class="chart-wrap"><svg id="chart-finishes" width="700"></svg></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>🚩 Checkpoints (Top 10)</h2></div>
+            <div class="chart-wrap"><svg id="chart-checkpoints" width="700"></svg></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><h2>🔌 Verbindungen (Top 10)</h2></div>
+            <div class="chart-wrap"><svg id="chart-connections" width="700"></svg></div>
+        </div>
+    </div>
+</div>
+
+<script src="assets/app.js?v=9"></script>
+<script src="assets/statsview.js?v=2"></script>
+<script>
+async function laden() {
+    try {
+        const daten = await ladeApi('hof');
+        setConnectionStatus(true);
+        await pruefeServerErreichbarkeit();
+
+        document.getElementById('stat-champion').textContent = daten.eintraege[0]?.name ?? '—';
+        document.getElementById('last-updated').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-DE');
+
+        StatsView.setzeDaten({
+            eintraege: daten.eintraege,
+            aktivitaetErfasst: true,
+            hinweisText: `Aktivitätswerte (Spielzeit, Finishes, Checkpoints, Verbindungen) werden erst seit ` +
+                `<strong>${sanitize(daten.aktivitaetSeit ?? '')}</strong> erfasst und decken nicht die gesamte Punkte-Historie ab.`,
+        });
+    } catch (e) {
+        setConnectionStatus(false);
+        document.getElementById('tabelle-body').innerHTML = `<tr><td colspan="9" class="error">Fehler: ${sanitize(e.message)}</td></tr>`;
+    }
+}
+laden();
+setInterval(laden, 30000);
+</script>
+</body>
+</html>

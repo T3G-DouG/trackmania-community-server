@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysen · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+    <style>
+        .lauf-auswahl-zeile { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+        .lauf-auswahl-zeile select {
+            background:var(--bg-surface); border:1px solid var(--border2); border-radius:8px;
+            color:#fff; padding:7px 10px; font-size:13px; font-family:var(--mono);
+        }
+        .lauf-meta { font-size:12px; color:var(--text-dim); margin-bottom:14px; }
+        .status-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; border-radius:14px; font-size:12px; font-weight:700; font-family:var(--font); }
+        .status-badge.ok { background:rgba(var(--accent4-rgb),0.15); color:var(--accent4); border:1px solid rgba(var(--accent4-rgb),0.35); }
+        .status-badge.teilweise { background:rgba(224,184,125,0.12); color:#e0b87d; border:1px solid rgba(224,184,125,0.35); }
+        .status-badge.kiFehler { background:rgba(224,138,125,0.12); color:#e08a7d; border:1px solid rgba(224,138,125,0.35); }
+
+        .ki-text { margin-top:16px; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid var(--border2); border-radius:10px; }
+        .ki-text-label { font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent2); font-weight:700; margin-bottom:6px; }
+        .ki-text-inhalt { font-size:14px; line-height:1.6; color:var(--text); }
+        .kategorie-hinweis { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+        .kategorie-gating { color:var(--text-dim); font-style:italic; padding:20px 0; }
+
+        .korrelation-row { display:grid; grid-template-columns:1fr 200px 60px; align-items:center; gap:14px; padding:10px 16px; border-bottom:1px solid var(--hairline); }
+        .korrelation-row:last-child { border-bottom:none; }
+        .korrelation-bar-track { position:relative; background:var(--bg-surface); border-radius:5px; height:12px; overflow:hidden; }
+        .korrelation-bar-fill { position:absolute; top:0; bottom:0; border-radius:5px; background:linear-gradient(90deg,var(--accent4),var(--accent2)); }
+        .korrelation-bar-mitte { position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(255,255,255,0.25); }
+        .korrelation-wert { font-family:var(--mono); font-weight:700; text-align:right; }
+
+        .rivalitaet-row, .anomalie-row { padding:12px 16px; border-bottom:1px solid var(--hairline); }
+        .rivalitaet-row:last-child, .anomalie-row:last-child { border-bottom:none; }
+        .rivalitaet-namen, .anomalie-row > div:first-child { font-weight:700; color:#fff; font-size:14px; }
+        .rivalitaet-info, .anomalie-info { font-size:12px; color:var(--text-dim); margin-top:2px; }
+
+        .tagesbericht-datum { font-size:12px; font-weight:700; color:var(--accent2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+
+        .section-untertitel {
+            font-family:var(--font-label); font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+            color:var(--text-dim); margin:28px 0 12px;
+        }
+        .section-untertitel:first-of-type { margin-top:8px; }
+        .kein-bericht-hinweis { padding:24px; text-align:center; color:var(--text-dim); font-size:14px; }
+
+        .kalender-jahr-nav { display:flex; align-items:center; gap:10px; margin-left:auto; }
+        .kalender-jahr-btn {
+            background:var(--bg-surface); border:1px solid var(--border2); color:var(--text);
+            border-radius:6px; width:26px; height:26px; font-size:15px; line-height:1; cursor:pointer;
+        }
+        .kalender-jahr-btn:hover:not(:disabled) { border-color:var(--accent); color:#fff; }
+        .kalender-jahr-btn:disabled { opacity:0.3; cursor:default; }
+        #kalender-jahr-label { font-family:var(--mono); font-weight:700; min-width:42px; text-align:center; }
+
+        .kalender-scroll { overflow-x:auto; padding:16px; }
+        .kalender-grid { display:grid; gap:3px; width:max-content; }
+        .kalender-monat-label, .kalender-wochentag-label { font-size:10px; color:var(--text-dim); font-family:var(--font-label); align-self:end; }
+        .kalender-monat-label { font-weight:700; color:var(--text); letter-spacing:0.5px; padding-left:2px; }
+        .kalender-wochentag-label { align-self:center; padding-right:5px; text-align:right; }
+        .kalender-zelle { width:11px; height:11px; border-radius:2px; background:var(--bg-surface); border:1px solid var(--border); padding:0; }
+        .kalender-zelle.monat-b { background:rgba(255,255,255,0.05); }
+        .kalender-zelle.monat-grenze { border-left:1px solid var(--border2); margin-left:2px; }
+        .kalender-zelle.hat-daten { cursor:pointer; border-color:transparent; }
+        .kalender-zelle.hat-daten:hover, .kalender-zelle.hat-daten:focus-visible { outline:1.5px solid #fff; outline-offset:1px; }
+        .kalender-zelle.ausgewaehlt { outline:1.5px solid var(--accent2); outline-offset:1px; }
+        /* Heat-Rampe ueber 8 Stufen: kuehles Blau (wenig) -> Gold -> kraeftiges Rot (viel) --
+           bewusste Abweichung vom Standard-Einzelfarbton, auf Wunsch des Betreibers, damit
+           besonders aktive Tage klar "heiss" (rot) statt nur dunkler herausstechen. */
+        .kalender-zelle.stufe-1 { background:rgba(114,180,202,0.5); }
+        .kalender-zelle.stufe-2 { background:rgba(151,179,160,0.58); }
+        .kalender-zelle.stufe-3 { background:rgba(187,179,117,0.66); }
+        .kalender-zelle.stufe-4 { background:rgba(224,178,74,0.74); }
+        .kalender-zelle.stufe-5 { background:rgba(222,148,66,0.82); }
+        .kalender-zelle.stufe-6 { background:rgba(219,118,58,0.88); }
+        .kalender-zelle.stufe-7 { background:rgba(217,88,50,0.94); }
+        .kalender-zelle.stufe-8 { background:#d63a2a; }
+
+        .kalender-legende { display:flex; align-items:center; gap:4px; padding:0 16px 16px; font-size:11px; color:var(--text-dim); }
+        .kalender-legende .kalender-zelle { width:10px; height:10px; cursor:default; }
+
+        #tagesbericht-detail { border-top:1px solid var(--hairline); padding:14px 16px; }
+        #tagesbericht-detail:empty { display:none; }
+        .tagesbericht-hinweis { color:var(--text-dim); font-size:13px; padding:4px 0; }
+
+        @media (max-width: 640px) {
+            .korrelation-row { grid-template-columns:1fr; row-gap:6px; padding:10px 12px; }
+            .korrelation-bar-track { order:2; }
+            .korrelation-wert { order:3; text-align:left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Verbindung wird hergestellt …</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item active" href="analysen.html">📊 Analysen</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">📊 Analysen</div>
+
+    <div class="section-untertitel">🗓️ Aktueller Wochenbericht</div>
+    <div id="analyse-wurzel-woche"><div class="loading">Lade Wochenbericht …</div></div>
+
+    <div class="section-untertitel">📅 Aktueller Monatsbericht</div>
+    <div id="analyse-wurzel-monat"><div class="loading">Lade Monatsbericht …</div></div>
+
+    <div class="panel" id="lauf-auswahl-panel" style="display:none">
+        <div class="panel-header lauf-auswahl-zeile">
+            <h2>🗂️ Älteren Lauf ansehen</h2>
+            <select id="lauf-auswahl"><option value="">– auswählen –</option></select>
+        </div>
+        <div id="analyse-wurzel-archiv"></div>
+    </div>
+
+    <div class="panel" id="tagesberichte-panel" style="display:none">
+        <div class="panel-header">
+            <h2>🌙 Tagesreports</h2>
+            <div class="kalender-jahr-nav">
+                <button type="button" id="kalender-jahr-zurueck" class="kalender-jahr-btn" aria-label="Vorheriges Jahr">‹</button>
+                <span id="kalender-jahr-label"></span>
+                <button type="button" id="kalender-jahr-vor" class="kalender-jahr-btn" aria-label="Nächstes Jahr">›</button>
+            </div>
+        </div>
+        <div class="kalender-scroll"><div id="kalender-wurzel"></div></div>
+        <div class="kalender-legende">
+            <span>Weniger</span>
+            <span class="kalender-zelle stufe-0"></span>
+            <span class="kalender-zelle stufe-1"></span>
+            <span class="kalender-zelle stufe-2"></span>
+            <span class="kalender-zelle stufe-3"></span>
+            <span class="kalender-zelle stufe-4"></span>
+            <span class="kalender-zelle stufe-5"></span>
+            <span class="kalender-zelle stufe-6"></span>
+            <span class="kalender-zelle stufe-7"></span>
+            <span class="kalender-zelle stufe-8"></span>
+            <span>Mehr</span>
+        </div>
+        <div id="tagesbericht-detail"></div>
+    </div>
+</div>
+
+<script src="assets/app.js?v=9"></script>
+<script>
+let alleLaeufe = [];
+
+const STATUS_LABEL = { ok: 'Alle Texte geprüft', teilweise: 'Teilweise geprüft', kiFehler: 'Nur Kennzahlen (kein KI-Text)' };
+
+// Nur bei status:'ok' ist abschnitt.text ein echter KI-Text -- bei 'teilweise' steckt dort der
+// generische Guard-Fallback-Satz ("Zu diesem Abschnitt konnte kein geprüfter Text erzeugt
+// werden ..."), der laut Betreiberwunsch nicht als KI-Einordnung erscheinen soll.
+function baueKiTextKarte(abschnitteIndex, schluessel) {
+    const abschnitt = abschnitteIndex[schluessel];
+    if (!abschnitt || !abschnitt.text || abschnitt.status !== 'ok') return '';
+    return `
+    <div class="ki-text">
+        <div class="ki-text-label">🤖 KI-Einordnung (Zahlen maschinell geprüft)</div>
+        <div class="ki-text-inhalt">${sanitize(abschnitt.text)}</div>
+    </div>`;
+}
+
+const FORMKURVEN_FARBEN = ['#4db4f5', '#e0b24a', '#6fae72', '#e08a7d', '#a78bfa', '#f472b6', '#38bdf8', '#fb923c', '#94a3b8', '#c08a54'];
+
+function renderFormkurven(daten, ns) {
+    const top = daten
+        .map((d) => ({ ...d, wert: d.verlauf[d.verlauf.length - 1]?.gleitenderSchnitt3 ?? 0 }))
+        .sort((a, b) => b.wert - a.wert)
+        .slice(0, 10);
+
+    // Gemeinsame X-Achse: Vereinigung aller Monate ueber die Top-10 hinweg (Spieler koennen
+    // unterschiedlich lange/versetzte Historien haben), chronologisch sortiert.
+    const monateSet = new Set();
+    top.forEach((d) => d.verlauf.forEach((v) => monateSet.add(v.monat)));
+    const monate = [...monateSet].sort();
+
+    const svgId = `chart-formkurven-${ns}`;
+
+    return {
+        html: `<p class="kategorie-hinweis">Gleitender 3-Monats-Punkteschnitt je Spieler -- alle Top-10 in einem Chart zum direkten Vergleich der Entwicklung. Namen stehen am jeweiligen Linienende.</p>
+               <div class="chart-wrap"><svg id="${svgId}"></svg></div>`,
+        nachEinfuegen: () => zeichneMehrfachVerlauf(
+            svgId,
+            top.map((d) => ({ name: d.name, punkte: d.verlauf.map((v) => ({ monat: v.monat, wert: v.gleitenderSchnitt3 })) })),
+            { monate, farben: FORMKURVEN_FARBEN }
+        ),
+    };
+}
+
+function renderAufsteigerAbsteiger(daten, richtung, ns) {
+    const top = daten.slice(0, 5).map((d) => ({ name: d.name, wert: Math.abs(d.platzDelta) }));
+    const svgId = `chart-${richtung === 'auf' ? 'aufsteiger' : 'absteiger'}-${ns}`;
+    const pfeil = richtung === 'auf' ? '▲' : '▼';
+    return {
+        html: `<div class="chart-wrap"><svg id="${svgId}" width="700"></svg></div>`,
+        nachEinfuegen: () => zeichneHorizontalBalken(svgId, top, {
+            labelKey: 'name', wertKey: 'wert',
+            farbe: richtung === 'auf' ? 'var(--accent4)' : 'var(--error)',
+            formatWert: (w) => `${pfeil} ${w} Plätze`,
+        }),
+    };
+}
+
+function renderAktivitaet(daten, ns) {
+    const svgId = `chart-aktivitaet-${ns}`;
+    return {
+        html: `<p class="kategorie-hinweis">Gesamte Spielzeit (Minuten) aller Spieler je Monat.</p>
+               <div class="chart-wrap"><svg id="${svgId}" viewBox="0 0 700 240" width="700"></svg></div>`,
+        nachEinfuegen: () => zeichneBalken(svgId, daten, { xKey: 'monat', yKey: 'timePlayed', xLabel: (d) => monatKurzLabel(d.monat), farbe: 'var(--accent3)' }),
+    };
+}
+
+function renderDominanz(daten, ns) {
+    const top = daten.slice(0, 10).map((d) => ({ label: `${d.name} · ${d.map.slice(0, 8)}…`, wert: d.anteilProzent }));
+    const svgId = `chart-dominanz-${ns}`;
+    return {
+        html: `<p class="kategorie-hinweis">Strecken, auf denen ein Spieler mindestens die Hälfte aller Fahrten gewinnt ("Hausstrecke").</p>
+               <div class="chart-wrap"><svg id="${svgId}" width="700"></svg></div>`,
+        nachEinfuegen: () => zeichneHorizontalBalken(svgId, top, { labelKey: 'label', wertKey: 'wert', farbe: 'var(--gold)', formatWert: (w) => `${w}%` }),
+    };
+}
+
+function renderZeiteinsatzLeistung(daten) {
+    const rows = daten.slice(0, 10).map((d) => {
+        const prozent = ((d.korrelation + 1) / 2) * 100;
+        const links = Math.min(50, prozent);
+        const breite = Math.abs(prozent - 50);
+        const vorzeichen = d.korrelation > 0 ? '+' : '';
+        return `
+        <div class="korrelation-row">
+            <div class="player-name">${sanitize(d.name)}</div>
+            <div class="korrelation-bar-track">
+                <div class="korrelation-bar-mitte"></div>
+                <div class="korrelation-bar-fill" style="left:${links}%;width:${breite}%"></div>
+            </div>
+            <div class="korrelation-wert">${vorzeichen}${d.korrelation.toFixed(2)}</div>
+        </div>`;
+    }).join('');
+    return {
+        html: `<p class="kategorie-hinweis">Zusammenhang zwischen investierter Spielzeit und erzielten Punkten je Monat (-1 bis +1, Mitte = kein Zusammenhang).</p>${rows}`,
+    };
+}
+
+function renderNeueSpieler(daten) {
+    return {
+        html: daten.map((d) => `
+        <div class="rivalitaet-row">
+            <div class="rivalitaet-namen">🆕 ${sanitize(d.name)}</div>
+            <div class="rivalitaet-info">dabei seit ${formatDatum(d.seit)}</div>
+        </div>`).join(''),
+    };
+}
+
+function renderRivalitaeten(daten) {
+    return {
+        html: daten.slice(0, 10).map((d) => `
+        <div class="rivalitaet-row">
+            <div class="rivalitaet-namen">⚔️ ${sanitize(d.nameA)} vs ${sanitize(d.nameB)}</div>
+            <div class="rivalitaet-info">eng beieinander in ${d.anzahlMonate} Monaten · aktueller Abstand ${d.letzterAbstand.toLocaleString('de-DE')} Punkte</div>
+        </div>`).join(''),
+    };
+}
+
+function renderAnomalien(daten) {
+    const monate = (daten.ungewoehnlicheMonate || []).slice(0, 10).map((a) => `
+        <div class="anomalie-row">
+            <div>${a.art === 'ungewoehnlich_stark' ? '📈' : '📉'} ${sanitize(a.name)} — ${monatKurzLabel(a.monat)}</div>
+            <div class="anomalie-info">${a.punkte.toLocaleString('de-DE')} Punkte (eigener Schnitt ${a.eigenerSchnitt.toLocaleString('de-DE')}, z=${a.zScore})</div>
+        </div>`).join('');
+    const comebacks = (daten.comebacks || []).slice(0, 10).map((c) => `
+        <div class="anomalie-row">
+            <div>🔄 ${sanitize(c.name)} — Comeback nach ${c.pauseMonate} Monaten Pause</div>
+            <div class="anomalie-info">${monatKurzLabel(c.monat)}</div>
+        </div>`).join('');
+    return { html: (monate + comebacks) || '<div class="no-records">Keine Auffälligkeiten</div>' };
+}
+
+function renderWochenAktivitaet(daten, ns) {
+    const top = daten.proSpieler.slice(0, 10).map((s) => ({ name: s.name, wert: s.anzahl }));
+    const svgId = `chart-wochenaktivitaet-${ns}`;
+    return {
+        html: `<p class="kategorie-hinweis">${daten.gesamt} Verbesserung(en) an ${daten.tage} Tag(en) in den letzten 7 Tagen.</p>
+               <div class="chart-wrap"><svg id="${svgId}" width="700"></svg></div>`,
+        nachEinfuegen: () => zeichneHorizontalBalken(svgId, top, { labelKey: 'name', wertKey: 'wert', farbe: 'var(--accent4)', formatWert: (w) => `${w}` }),
+    };
+}
+
+function renderNaheDuelle(daten) {
+    return {
+        html: daten.map((d) => `
+        <div class="rivalitaet-row">
+            <div class="rivalitaet-namen">⚔️ ${sanitize(d.nameA)} vs ${sanitize(d.nameB)}</div>
+            <div class="rivalitaet-info">aktueller Abstand ${d.abstand.toLocaleString('de-DE')} Punkte</div>
+        </div>`).join(''),
+    };
+}
+
+// AP17-Nachtrag: der Wochenbericht (laeuft sonntags) zeigt bewusst NUR Signale, die sich
+// innerhalb einer Woche tatsaechlich veraendern -- die vorher hier mitgelaufenen
+// Monats-Kennzahlen (Formkurven/Aktivitaet/Dominanz/Zeiteinsatz/Rivalitaeten/Anomalien) blieben
+// bis zum naechsten Monatswechsel byte-identisch und wiederholten so faktisch denselben
+// Bericht. Diese Kategorien liefert jetzt der separate, einmal im Monat laufende
+// Monatsbericht -- siehe controller/lib/analyse/kennzahlen.js.
+// render(k, ns): ns ist der Namespace des jeweiligen Anzeige-Containers (siehe renderLauf) --
+// noetig, da Wochen-/Monats-/Archiv-Panel gleichzeitig auf der Seite stehen koennen und
+// mehrere Panels dieselbe Kategorie (z.B. Aufsteiger) mit je eigenem Chart-SVG zeigen; ohne
+// eindeutige svgId je Panel wuerden sich die <svg id="..."> zwischen den Panels doppeln.
+const KATEGORIEN_MONAT = [
+    { schluessel: 'formkurven', titel: '📈 Formkurven', render: (k, ns) => renderFormkurven(k.daten, ns) },
+    { schluessel: 'aufsteiger', titel: '🚀 Aufsteiger', render: (k, ns) => renderAufsteigerAbsteiger(k.daten, 'auf', ns) },
+    { schluessel: 'absteiger', titel: '📉 Absteiger', render: (k, ns) => renderAufsteigerAbsteiger(k.daten, 'ab', ns) },
+    { schluessel: 'aktivitaet', titel: '⏱️ Aktivität', render: (k, ns) => renderAktivitaet(k.daten, ns) },
+    { schluessel: 'dominanz', titel: '👑 Hausstrecken', render: (k, ns) => renderDominanz(k.daten, ns) },
+    { schluessel: 'zeiteinsatzLeistung', titel: '⏱️ Zeiteinsatz vs. Punktzahl', render: (k) => renderZeiteinsatzLeistung(k.daten) },
+    { schluessel: 'rivalitaeten', titel: '⚔️ Rivalitäten', render: (k) => renderRivalitaeten(k.daten) },
+    { schluessel: 'anomalien', titel: '🔍 Auffälligkeiten', render: (k) => renderAnomalien(k.daten) },
+    { schluessel: 'neueSpieler', titel: '🆕 Neue Spieler', render: (k) => renderNeueSpieler(k.daten) },
+];
+
+const KATEGORIEN_WOCHE = [
+    { schluessel: 'aufsteiger', titel: '🚀 Aufsteiger (diese Woche)', render: (k, ns) => renderAufsteigerAbsteiger(k.daten, 'auf', ns) },
+    { schluessel: 'absteiger', titel: '📉 Absteiger (diese Woche)', render: (k, ns) => renderAufsteigerAbsteiger(k.daten, 'ab', ns) },
+    { schluessel: 'wochenAktivitaet', titel: '🔥 Aktivität diese Woche', render: (k, ns) => renderWochenAktivitaet(k.daten, ns) },
+    { schluessel: 'naheDuelle', titel: '⚔️ Engste Duelle jetzt', render: (k) => renderNaheDuelle(k.daten) },
+    { schluessel: 'neueSpieler', titel: '🆕 Neue Spieler (diese Woche)', render: (k) => renderNeueSpieler(k.daten) },
+];
+
+function formatDatum(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * Rendert einen Lauf in einen der drei Panel-Container (siehe HTML: analyse-wurzel-woche/
+ * -monat/-archiv). `wurzelId` dient gleichzeitig als Namespace fuer die Chart-SVG-IDs --
+ * Wochen-/Monats-/Archiv-Panel stehen jetzt gleichzeitig auf der Seite (AP17-Nachtrag,
+ * vorher genau ein Panel per Dropdown-Auswahl), ohne eindeutige IDs je Panel wuerden sich
+ * gleichnamige Kategorien (z.B. "Aufsteiger" in Wochen- UND Monatsbericht) die gleiche
+ * <svg id="..."> teilen.
+ */
+function renderLauf(lauf, wurzelId, leerHinweis) {
+    const wurzel = document.getElementById(wurzelId);
+    if (!lauf) {
+        wurzel.innerHTML = `<div class="kein-bericht-hinweis">${leerHinweis}</div>`;
+        return;
+    }
+    const ns = wurzelId;
+
+    const abschnitteIndex = {};
+    for (const a of lauf.texte?.abschnitte ?? []) abschnitteIndex[a.schluessel] = a;
+
+    const zeitraumText = lauf.zeitraum?.vonMonat
+        ? ` · Zeitraum ${monatKurzLabel(lauf.zeitraum.vonMonat)}–${monatKurzLabel(lauf.zeitraum.bisMonat)}`
+        : '';
+    // KI-Einordnung nur zeigen, wenn tatsaechlich ein echter KI-Text erzeugt wurde (status:'ok')
+    // -- sonst komplett ausblenden statt eines Platzhaltertexts/Guard-Fallback-Satzes
+    // (Betreiberwunsch). zusammenfassungStatus existiert erst seit dieser Aenderung; bei
+    // aelteren, bereits gespeicherten Laeufen (Feld fehlt) wird ersatzweise nur auf einen
+    // vorhandenen Text geprueft, wie bisher.
+    const zusammenfassungOk = lauf.texte?.zusammenfassungStatus
+        ? lauf.texte.zusammenfassungStatus === 'ok'
+        : Boolean(lauf.texte?.zusammenfassung);
+    const zusammenfassungHtml = zusammenfassungOk
+        ? `<div class="ki-text">
+             <div class="ki-text-label">🤖 KI-Einordnung (Zahlen maschinell geprüft)</div>
+             <div class="ki-text-inhalt">${sanitize(lauf.texte.zusammenfassung)}</div>
+           </div>`
+        : '';
+
+    let html = `
+    <div class="panel">
+        <div class="panel-header">
+            <h2>📝 Zusammenfassung</h2>
+            <span class="status-badge ${sanitize(lauf.textStatus)}">${sanitize(STATUS_LABEL[lauf.textStatus] || lauf.textStatus)}</span>
+        </div>
+        <div class="lauf-meta">${lauf.berichtTyp === 'monat' ? '📅 Monatsbericht' : '🗓️ Wochenbericht'} · Lauf vom ${formatDatum(lauf.erstelltAm)} · Auslöser ${sanitize(lauf.ausloeser)} · Modell ${sanitize(lauf.modell)}${zeitraumText}</div>
+        ${zusammenfassungHtml}
+    </div>`;
+
+    const nachEinfuegenAufrufe = [];
+    const kategorien = lauf.berichtTyp === 'monat' ? KATEGORIEN_MONAT : KATEGORIEN_WOCHE;
+    for (const kat of kategorien) {
+        const kennzahl = lauf.kennzahlen?.[kat.schluessel];
+        html += `<div class="panel"><div class="panel-header"><h2>${kat.titel}</h2></div>`;
+        if (!kennzahl || !kennzahl.verfuegbar) {
+            html += `<div class="kategorie-gating">${sanitize(kennzahl?.grund || 'Noch nicht verfügbar.')}</div>`;
+        } else {
+            const { html: bodyHtml, nachEinfuegen } = kat.render(kennzahl, ns);
+            html += bodyHtml;
+            html += baueKiTextKarte(abschnitteIndex, kat.schluessel);
+            if (nachEinfuegen) nachEinfuegenAufrufe.push(nachEinfuegen);
+        }
+        html += '</div>';
+    }
+
+    wurzel.innerHTML = html;
+    // Chart-Funktionen brauchen die SVG-Elemente bereits im DOM -- erst nach dem innerHTML-Swap aufrufen.
+    nachEinfuegenAufrufe.forEach((fn) => fn());
+}
+
+async function ladeArchivLauf(laufId) {
+    const archivWurzel = document.getElementById('analyse-wurzel-archiv');
+    if (!laufId) { archivWurzel.innerHTML = ''; return; }
+    archivWurzel.innerHTML = '<div class="loading">Lade …</div>';
+    const daten = await ladeApi('analysen', { lauf: laufId });
+    renderLauf(daten.lauf, 'analyse-wurzel-archiv', '');
+}
+
+function formatDatumKurz(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+const WOCHENTAGE_KURZ = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const MONATE_KURZ = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+
+let kalenderJahrAktuell = null;
+let kalenderMinJahr = null;
+let kalenderMaxJahr = null;
+let kalenderAusgewaehltesDatum = null;
+
+/** Baut das Grid einer Jahres-Heatmap (Muster GitHub-Beitragskalender): Spalten = Wochen
+ *  (Montag oben, Sonntag unten), eine Zelle je Kalendertag, Faerbung nach Verbesserungen
+ *  relativ zum Maximum des angezeigten Jahres. Nur Tage MIT Tagesbericht sind klickbar. */
+function baueKalenderGrid(jahr, tageMap) {
+    const ersterTag = new Date(jahr, 0, 1);
+    const letzterTag = new Date(jahr, 11, 31);
+    const montagOffset = (ersterTag.getDay() + 6) % 7; // 0=Montag ... 6=Sonntag
+
+    const werte = Object.values(tageMap).map((t) => t.anzahlVerbesserungen).filter((v) => v > 0);
+    const maxWert = werte.length ? Math.max(...werte) : 0;
+    const STUFEN = 8;
+
+    const cursor = new Date(ersterTag);
+    cursor.setDate(cursor.getDate() - montagOffset);
+
+    let zellenHtml = '';
+    let monatLabelsHtml = '';
+    let letzterMonatMitLabel = -1;
+    let wocheIndex = 0;
+
+    while (cursor <= letzterTag) {
+        for (let wochentag = 0; wochentag < 7; wochentag++) {
+            if (cursor.getFullYear() === jahr) {
+                // Monat/Tag konsequent aus demselben (UTC-basierten) datumStr ableiten, der
+                // auch fuer den Daten-Lookup/Titel genutzt wird -- sonst laufen bei
+                // Zeitzonen-Offset ungleich 0 cursor.getMonth()/getDate() (lokal) und
+                // datumStr (UTC) auseinander und die Monatsgrenze landet auf dem falschen Tag.
+                const datumStr = cursor.toISOString().slice(0, 10);
+                const monatDesTages = Number(datumStr.slice(5, 7)) - 1;
+                const tagDesMonats = Number(datumStr.slice(8, 10));
+
+                if (wochentag === 0 && monatDesTages !== letzterMonatMitLabel) {
+                    letzterMonatMitLabel = monatDesTages;
+                    monatLabelsHtml += `<div class="kalender-monat-label" style="grid-column:${wocheIndex + 2};grid-row:1">${MONATE_KURZ[monatDesTages]}</div>`;
+                }
+                // Monatszugehoerigkeit zusaetzlich pro Einzeltag markieren (nicht nur pro
+                // Wochenspalte) -- zebra-artige Abdunklung wechselnder Monate + Trennlinie
+                // exakt am 1. jedes Monats, damit Monatsgrenzen auch innerhalb einer
+                // Wochenzeile (die zwei Monate ueberlappen kann) klar erkennbar sind.
+                const monatKlasse = (monatDesTages % 2 === 1 ? ' monat-b' : '') + (tagDesMonats === 1 ? ' monat-grenze' : '');
+                const eintrag = tageMap[datumStr];
+                const anzahl = eintrag?.anzahlVerbesserungen ?? 0;
+                const stufe = anzahl === 0 ? 0 : Math.min(STUFEN, Math.ceil((anzahl / maxWert) * STUFEN));
+                const titel = eintrag
+                    ? `${formatDatumKurz(datumStr)}: ${anzahl} Verbesserung(en) von ${eintrag.anzahlSpieler} Spieler(n)`
+                    : formatDatumKurz(datumStr);
+                zellenHtml += eintrag
+                    ? `<button type="button" class="kalender-zelle hat-daten stufe-${stufe}${monatKlasse}" style="grid-column:${wocheIndex + 2};grid-row:${wochentag + 2}" title="${sanitize(titel)}" data-datum="${datumStr}"></button>`
+                    : `<div class="kalender-zelle stufe-0${monatKlasse}" style="grid-column:${wocheIndex + 2};grid-row:${wochentag + 2}" title="${sanitize(titel)}"></div>`;
+            }
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        wocheIndex++;
+    }
+
+    const wochentagLabelsHtml = WOCHENTAGE_KURZ.map((w, i) =>
+        `<div class="kalender-wochentag-label" style="grid-column:1;grid-row:${i + 2}">${w}</div>`
+    ).join('');
+
+    return `<div class="kalender-grid" style="grid-template-columns:26px repeat(${wocheIndex}, 12px);grid-template-rows:14px repeat(7, 12px)">
+        ${wochentagLabelsHtml}${monatLabelsHtml}${zellenHtml}
+    </div>`;
+}
+
+function renderTagesberichtDetail(t) {
+    const detail = document.getElementById('tagesbericht-detail');
+    if (!t) {
+        detail.innerHTML = '';
+        return;
+    }
+    const verbesserungenZeilen = (t.verbesserungen ?? []).map((v) => `<div class="anomalie-row">
+        <div>${sanitize(v.name)}</div>
+        <div class="anomalie-info">${v.anzahl} Verbesserung(en)</div>
+    </div>`).join('');
+    const tabellenZeilen = (t.monatstabelle ?? []).map((s) => {
+        const medaille = s.position === 1 ? '🥇' : s.position === 2 ? '🥈' : s.position === 3 ? '🥉' : `${s.position}.`;
+        return `<div class="anomalie-row">
+            <div>${medaille} ${sanitize(s.trend)} ${sanitize(s.name)}</div>
+            <div class="anomalie-info">${s.punkte.toLocaleString('de-DE')} Punkte</div>
+        </div>`;
+    }).join('');
+    detail.innerHTML = `
+        <div class="tagesbericht-datum">${formatDatumKurz(t.datum)} · ${t.anzahlVerbesserungen} Verbesserung(en) von ${t.anzahlSpieler} Spieler(n)</div>
+        ${verbesserungenZeilen}
+        ${tabellenZeilen ? `<div class="tagesbericht-datum" style="margin-top:0.5em">Monatstabelle</div>${tabellenZeilen}` : ''}`;
+}
+
+async function zeigeTagesbericht(datum, { scrollen = true } = {}) {
+    document.querySelectorAll('.kalender-zelle.ausgewaehlt').forEach((el) => el.classList.remove('ausgewaehlt'));
+    const zelle = document.querySelector(`.kalender-zelle[data-datum="${datum}"]`);
+    if (zelle) zelle.classList.add('ausgewaehlt');
+    kalenderAusgewaehltesDatum = datum;
+
+    const detail = document.getElementById('tagesbericht-detail');
+    detail.innerHTML = '<div class="loading">Lade Tagesbericht …</div>';
+    try {
+        const t = await ladeApi('tagesbericht', { datum });
+        renderTagesberichtDetail(t);
+        // Nur bei echtem Nutzerklick scrollen -- bei der automatischen Vorauswahl beim
+        // Laden der Seite (ladeKalenderJahr) sprang die Seite sonst sofort zu den
+        // Tagesreports ganz unten statt oben bei den Analysen zu starten.
+        if (scrollen) detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {
+        detail.innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+
+async function ladeKalenderJahr(jahr) {
+    const panel = document.getElementById('tagesberichte-panel');
+    const wurzel = document.getElementById('kalender-wurzel');
+    try {
+        const daten = await ladeApi('tagesberichteKalender', { jahr });
+        panel.style.display = '';
+        kalenderJahrAktuell = daten.jahr;
+        kalenderMinJahr = daten.minJahr;
+        kalenderMaxJahr = daten.maxJahr;
+
+        document.getElementById('kalender-jahr-label').textContent = String(daten.jahr);
+        document.getElementById('kalender-jahr-zurueck').disabled = daten.jahr <= daten.minJahr;
+        document.getElementById('kalender-jahr-vor').disabled = daten.jahr >= daten.maxJahr;
+
+        const tageMap = {};
+        for (const t of daten.tage) tageMap[t.datum] = t;
+        wurzel.innerHTML = baueKalenderGrid(daten.jahr, tageMap);
+        wurzel.querySelectorAll('.kalender-zelle[data-datum]').forEach((zelle) => {
+            zelle.addEventListener('click', () => zeigeTagesbericht(zelle.dataset.datum));
+        });
+
+        // Neuesten Tag mit Daten des angezeigten Jahres direkt anzeigen statt eines leeren Panels.
+        const juengsterEintrag = daten.tage.length ? daten.tage[daten.tage.length - 1] : null;
+        if (juengsterEintrag) {
+            await zeigeTagesbericht(juengsterEintrag.datum, { scrollen: false });
+        } else {
+            kalenderAusgewaehltesDatum = null;
+            renderTagesberichtDetail(null);
+            document.getElementById('tagesbericht-detail').innerHTML = '<div class="tagesbericht-hinweis">Keine Tagesberichte in diesem Jahr.</div>';
+        }
+    } catch (e) {
+        // Rein additiv -- ein Fehler hier darf die restliche Analyseseite nicht stoeren.
+        panel.style.display = 'none';
+    }
+}
+
+document.getElementById('kalender-jahr-zurueck').addEventListener('click', () => ladeKalenderJahr(kalenderJahrAktuell - 1));
+document.getElementById('kalender-jahr-vor').addEventListener('click', () => ladeKalenderJahr(kalenderJahrAktuell + 1));
+
+async function laden() {
+    try {
+        alleLaeufe = await ladeApi('analysenHistorie'); // sortiert erstelltAm desc, siehe api.php
+        setConnectionStatus(true);
+        await pruefeServerErreichbarkeit();
+
+        // AP17-Nachtrag: statt nur des chronologisch neuesten Laufs (der wegen der viel
+        // haeufigeren Wochenberichte den seltenen Monatsbericht sonst fast immer verdraengt
+        // haette) jetzt IMMER den neuesten Lauf JE Typ zeigen -- beide Panels dauerhaft sichtbar.
+        const neuesterWoche = alleLaeufe.find((l) => l.berichtTyp !== 'monat');
+        const neuesterMonat = alleLaeufe.find((l) => l.berichtTyp === 'monat');
+        const [wocheDaten, monatDaten] = await Promise.all([
+            neuesterWoche ? ladeApi('analysen', { lauf: neuesterWoche.id }) : { lauf: null },
+            neuesterMonat ? ladeApi('analysen', { lauf: neuesterMonat.id }) : { lauf: null },
+        ]);
+        renderLauf(wocheDaten.lauf, 'analyse-wurzel-woche', 'Noch keine Analyse durchgeführt. Der erste wöchentliche Lauf erscheint hier automatisch.');
+        renderLauf(monatDaten.lauf, 'analyse-wurzel-monat', 'Noch kein Monatsbericht vorhanden — der erste läuft automatisch am 2. des Monats ab 09:00.');
+
+        const auswahlPanel = document.getElementById('lauf-auswahl-panel');
+        if (alleLaeufe.length > 0) {
+            auswahlPanel.style.display = '';
+            const auswahl = document.getElementById('lauf-auswahl');
+            auswahl.innerHTML = '<option value="">– auswählen –</option>' + alleLaeufe.map((l) => `<option value="${l.id}">${l.berichtTyp === 'monat' ? '📅' : '🗓️'} ${formatDatum(l.erstelltAm)} (${sanitize(l.ausloeser)})</option>`).join('');
+            auswahl.onchange = () => ladeArchivLauf(auswahl.value);
+        }
+        await ladeKalenderJahr(new Date().getFullYear());
+    } catch (e) {
+        setConnectionStatus(false);
+        document.getElementById('analyse-wurzel-woche').innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+laden();
+</script>
+</body>
+</html>

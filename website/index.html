@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+    <style>
+        .online-band {
+            display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+            background:var(--bg-card); border:1px solid var(--border); border-radius:14px;
+            padding:14px 20px; margin-bottom:20px;
+        }
+        .online-band .label { font-size:12px; font-weight:700; letter-spacing:1px; color:var(--text-dim); text-transform:uppercase; }
+        .spieler-badge {
+            padding:5px 12px; border-radius:14px; font-size:12px; font-weight:700;
+            background:rgba(var(--accent4-rgb),0.15); color:var(--accent4); border:1px solid rgba(var(--accent4-rgb),0.35);
+            display:flex; align-items:center; gap:6px;
+        }
+        .spieler-badge .dot { width:6px; height:6px; border-radius:50%; background:var(--accent4); animation:pulse 1.6s infinite; }
+
+        /* Laufschrift-Ticker "Zuletzt verbessert" -- eigenstaendig, unabhaengig vom Gaming-Log */
+        .verbesserungen-ticker {
+            display:flex; align-items:center; gap:16px; overflow:hidden;
+            background:var(--bg-card); border:1px solid var(--border); border-radius:14px;
+            padding:12px 20px; margin-bottom:20px;
+        }
+        .verbesserungen-ticker .vt-label {
+            font-size:12px; font-weight:700; letter-spacing:1px; color:var(--gold); text-transform:uppercase;
+            white-space:nowrap; flex-shrink:0;
+        }
+        .vt-viewport { overflow:hidden; flex:1; min-width:0; }
+        .vt-track {
+            display:flex; align-items:baseline; gap:40px; width:max-content;
+            animation:vt-scroll linear infinite; animation-duration:var(--vt-dauer, 30s);
+        }
+        .vt-track.vt-statisch { animation:none; transform:none; }
+        .vt-item { display:flex; align-items:baseline; gap:8px; font-size:13px; white-space:nowrap; color:var(--text); }
+        .vt-item .vt-delta { color:var(--accent2); font-weight:700; }
+        .vt-leer { color:var(--text-dim); font-size:13px; white-space:nowrap; }
+        @keyframes vt-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+        @media (prefers-reduced-motion: reduce) {
+            .vt-track { animation:none !important; }
+        }
+
+        /* Dezente Map-Auswahl: kleine Pillen statt grosser Karten */
+        .map-chip-leiste { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+        .map-chip-leiste .label { font-size:11px; font-weight:700; letter-spacing:1px; color:var(--text-dim); text-transform:uppercase; margin-right:2px; }
+        .map-chip {
+            padding:6px 14px; border-radius:14px; font-size:12px; font-weight:600;
+            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); color:var(--text-dim);
+            cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .map-chip:hover { color:#fff; border-color:rgba(255,255,255,0.25); }
+        .map-chip.active { background:rgba(var(--accent-rgb),0.15); border-color:var(--accent); color:#fff; }
+        .map-chip .chip-live-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 1.4s infinite; }
+
+        /* ── ZEITEN-LISTE (Timing-Tower): keyed Zeilen + Animationen ── */
+        .rang-row {
+            display:grid; grid-template-columns:50px 1fr 120px 96px 200px; align-items:center; gap:14px;
+            padding:12px 16px; border-bottom:1px solid var(--hairline);
+            transition:transform .5s cubic-bezier(.22,.9,.35,1), background .3s;
+        }
+        .rang-row:hover { background:rgba(var(--accent-rgb),0.06); }
+        .rang-row.online-row { background:rgba(var(--accent4-rgb),0.05); }
+        .rang-row .rang { font-family:var(--mono); font-weight:700; font-size:16px; }
+        .rang-row .rang.gold { color:var(--gold); }
+        .rang-row .rang.silver { color:var(--silver); }
+        .rang-row .rang.bronze { color:var(--bronze); }
+        .rang-row .spieler-name { font-weight:700; color:#fff; display:flex; align-items:center; gap:8px; min-width:0; }
+        .rang-row .spieler-name a { color:inherit; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .rang-row .spieler-name a:hover { color:var(--accent); }
+        .rang-row .online-dot { display:none; width:6px; height:6px; border-radius:50%; background:var(--accent4); animation:pulse 1.6s infinite; flex:none; }
+        .rang-row.online-row .online-dot { display:inline-block; }
+        .rang-row .zeit { font-family:var(--mono); color:var(--accent2); font-size:14px; }
+        .rang-row .intervall { font-family:var(--mono); font-size:12.5px; color:var(--text-dim); text-align:right; }
+        .rang-row .intervall.leader { color:var(--text-faint); }
+        .gap-wrap { display:flex; align-items:center; gap:10px; }
+        .gap-text { font-family:var(--mono); font-size:13px; color:var(--text-dim); min-width:80px; text-align:right; }
+        .gap-text.leader { color:var(--gold); font-weight:700; }
+        .gap-bar-track { flex:1; height:6px; background:rgba(255,255,255,0.06); border-radius:3px; overflow:hidden; }
+        .gap-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent2),var(--accent)); border-radius:3px; transition:width .8s cubic-bezier(.22,.9,.35,1); }
+
+        /* Einmal-Animationen (Klasse wird per JS gesetzt und nach animationend entfernt) */
+        @keyframes zeitGlow   { 0% { background:rgba(var(--accent-rgb),0.20);  box-shadow:inset 0 0 18px rgba(var(--accent-rgb),0.22); } 100% { background:transparent; box-shadow:none; } }
+        @keyframes rangHoch   { 0% { background:rgba(var(--accent4-rgb),0.20); } 100% { background:transparent; } }
+        @keyframes rangRunter { 0% { background:rgba(var(--error-rgb),0.14);  } 100% { background:transparent; } }
+        @keyframes zeitBlitz  { 0% { color:#fff; text-shadow:0 0 12px rgba(var(--accent-rgb),0.9); } 100% {} }
+        @keyframes zeileNeu   { 0% { opacity:0; transform:translateY(10px); } 100% { opacity:1; } }
+        .rang-row.zeit-neu    { animation:zeitGlow 1.2s ease-out; }
+        .rang-row.rang-hoch   { animation:rangHoch 1.4s ease-out; }
+        .rang-row.rang-runter { animation:rangRunter 1.4s ease-out; }
+        .rang-row .zeit.zeit-blitz { animation:zeitBlitz 1.2s ease-out; }
+        .rang-row.zeile-neu   { animation:zeileNeu .6s ease-out; }
+
+        /* ── ZEITSTRAHL: Feld proportional (Wurzel-Skala) auf einer Zeit-Achse ── */
+        .zeitstrahl { position:relative; height:92px; margin:2px 6px 18px; display:none; }
+        .zeitstrahl.sichtbar { display:block; }
+        .zs-spur {
+            position:absolute; left:0; right:0; top:52px; height:4px; border-radius:2px;
+            background:linear-gradient(90deg, rgba(var(--gold-rgb),0.55), rgba(var(--accent-rgb),0.35) 40%, rgba(255,255,255,0.07));
+        }
+        .zs-ticks, .zs-marker-ebene { position:absolute; left:0; right:0; top:0; bottom:0; }
+        .zs-ticks { pointer-events:none; }
+        .zs-tick { position:absolute; transform:translateX(-50%); text-align:center; }
+        .zs-tick .strich { width:1px; height:10px; background:rgba(255,255,255,0.18); margin:47px auto 0; }
+        .zs-tick .label { font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:3px; white-space:nowrap; }
+        .zs-marker { position:absolute; top:0; bottom:0; transform:translateX(-50%); transition:left .8s cubic-bezier(.22,.9,.35,1); }
+        .zs-marker .zs-dot {
+            position:absolute; top:52px; left:50%; transform:translate(-50%,-38%);
+            width:12px; height:12px; border-radius:50%; background:var(--accent2);
+            border:2px solid var(--bg-card); box-shadow:0 0 8px rgba(var(--accent-rgb),0.5);
+        }
+        .zs-marker.gold .zs-dot { background:var(--gold); box-shadow:0 0 10px rgba(var(--gold-rgb),0.6); }
+        .zs-marker.online .zs-dot { box-shadow:0 0 0 3px rgba(var(--accent4-rgb),0.4), 0 0 8px rgba(var(--accent-rgb),0.5); }
+        .zs-name {
+            position:absolute; top:4px; left:50%; transform:translateX(-50%);
+            font-family:var(--font-label); font-size:10.5px; font-weight:600; letter-spacing:.5px;
+            color:var(--text-dim); white-space:nowrap;
+        }
+        .zs-marker.gold .zs-name { color:var(--gold); }
+        .zs-stiel { position:absolute; top:15px; bottom:38px; left:50%; width:1px; background:rgba(255,255,255,0.12); }
+        .zs-marker.ebene1 .zs-name { top:22px; }
+        .zs-marker.ebene1 .zs-stiel { top:33px; }
+        .zs-marker.name-verdeckt .zs-name, .zs-marker.name-verdeckt .zs-stiel { display:none; }
+        .zs-marker.zeile-neu { animation:zeileNeu .6s ease-out; }
+
+        /* Autorenzeit: rein informativer, dezenter Marker -- keine Transition (keine
+           Konkurrenz zu den animierten Spieler-Markern), fliesst nirgends in Wertung/Logging ein. */
+        .zs-marker-at { position:absolute; top:15px; bottom:8px; left:0; transform:translateX(-50%); opacity:.45; }
+        .zs-marker-at .zs-at-linie { width:1px; height:100%; margin:0 auto; background:rgba(var(--gold-rgb),0.8); }
+        .zs-marker-at .zs-at-label {
+            position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:2px;
+            font-family:var(--mono); font-size:9px; letter-spacing:.5px; color:var(--text-faint); white-space:nowrap;
+        }
+
+        @media(max-width:768px) {
+            .rang-row { grid-template-columns:36px 1fr 90px 70px; }
+            .gap-wrap { display:none; }
+        }
+
+        /* ── TMX-MAP-INFO-WIDGET ── */
+        .tmx-bild { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px; background:rgba(255,255,255,0.04); margin-bottom:14px; }
+        .tmx-name { font-family:var(--font-display); font-size:16px; font-weight:700; color:#fff; margin-bottom:2px; }
+        .tmx-autoren { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+        .tmx-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+        .tmx-tag { font-size:10.5px; padding:3px 9px; border-radius:10px; border:1px solid var(--border); color:var(--text-dim); }
+        .tmx-meta { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; font-size:12.5px; }
+        .tmx-meta dt { color:var(--text-dim); }
+        .tmx-meta dd { font-family:var(--mono); color:#fff; text-align:right; }
+        .tmx-link { display:inline-block; margin-top:14px; font-size:12px; color:var(--accent); text-decoration:none; }
+        .tmx-link:hover { text-decoration:underline; }
+
+        /* Barrierefreiheit: bei reduzierter Bewegung alle Uebergaenge/Animationen aus */
+        @media (prefers-reduced-motion: reduce) {
+            .rang-row, .gap-bar-fill, .zs-marker { transition:none; }
+            .rang-row.zeit-neu, .rang-row.rang-hoch, .rang-row.rang-runter,
+            .rang-row .zeit.zeit-blitz, .rang-row.zeile-neu, .zs-marker.zeile-neu { animation:none; }
+        }
+
+        /* ── DASHBOARD-LAYOUT (2. Monitor beim Rennen) ──────────────── */
+        .dashboard-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; align-items:start; }
+        .dashboard-col-haupt, .dashboard-col-neben { min-width:0; }
+        .dashboard-col-neben { display:flex; flex-direction:column; gap:0; }
+        @media(max-width:1000px) { .dashboard-grid { grid-template-columns:1fr; } }
+
+        .system-stat-row { margin-bottom:16px; }
+        .system-stat-row:last-child { margin-bottom:0; }
+        .system-stat-row .kopf { display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+        .system-stat-row .kopf .wert { font-family:var(--mono); color:#fff; font-weight:700; }
+
+        .server-kleine-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:18px; }
+        .server-kleine-stats .kleine-stat { padding:10px 12px; }
+        .server-kleine-stats .kleine-stat h4 { font-size:9px; }
+        .server-kleine-stats .kleine-stat .wert { font-size:15px; }
+
+        /* GAMING-LOG */
+        .log-liste {
+            height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
+            font-family:var(--mono); font-size:12.5px; padding-right:4px;
+        }
+        .log-liste::-webkit-scrollbar { width:6px; }
+        .log-liste::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+        .log-eintrag {
+            padding:7px 10px; border-radius:6px; background:rgba(255,255,255,0.02);
+            display:flex; gap:10px; align-items:baseline; line-height:1.4;
+        }
+        .log-zeit { color:var(--text-dim); font-size:11px; white-space:nowrap; flex-shrink:0; }
+        .log-text { color:var(--text); word-break:break-word; }
+        .log-eintrag.log-rekord .log-text { color:var(--gold); }
+        .log-eintrag.log-admin .log-text { color:var(--accent); }
+        .log-eintrag.log-voting .log-text { color:var(--accent2); }
+        .log-eintrag.log-strecke .log-text { color:var(--accent4); }
+        .log-eintrag.log-errungenschaft .log-text { color:#e0824a; }
+        .log-eintrag.log-ueberholt .log-text { color:var(--error); }
+        .log-eintrag.log-tabelle .log-text { color:var(--accent2); }
+        .log-eintrag.log-hof .log-text { color:var(--gold); font-weight:700; }
+        .log-eintrag.log-kommentar .log-text { color:var(--accent3); font-style:italic; }
+
+        /* SERVER-OFFLINE-BANNER (sichtbar wenn Controller/Server keine frischen Daten mehr liefern) */
+        .server-offline-banner {
+            display:none; align-items:center; gap:10px; background:rgba(var(--error-rgb),0.15);
+            border:1px solid var(--error); border-radius:14px; padding:14px 20px; margin-bottom:20px;
+            color:#fff; font-size:13px; font-weight:700;
+        }
+        .server-offline-banner.sichtbar { display:flex; }
+        .server-offline-banner .zeit { font-weight:400; color:var(--text-dim); font-size:12px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Verbindung wird hergestellt …</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item active" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item" href="analysen.html">📊 Analysen</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="server-offline-banner" id="server-offline-banner">
+        ⚠️ Server/Controller aktuell nicht erreichbar <span class="zeit" id="offline-seit"></span>
+    </div>
+
+    <div class="online-band">
+        <span class="label"><span class="live-dot"></span>Online jetzt:</span>
+        <div id="online-badges" style="display:flex;gap:8px;flex-wrap:wrap">—</div>
+    </div>
+
+    <div class="verbesserungen-ticker" id="verbesserungen-ticker">
+        <span class="vt-label">⚡ Zuletzt verbessert</span>
+        <div class="vt-viewport">
+            <div class="vt-track vt-statisch" id="verbesserungen-track">
+                <span class="vt-leer">Noch keine Verbesserungen …</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-col-haupt">
+            <div class="map-chip-leiste">
+                <span class="label">Map:</span>
+                <div id="map-chips" style="display:flex;gap:8px;flex-wrap:wrap">Lade …</div>
+            </div>
+
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <h2 id="ausgewaehlte-map-titel">🏁 Zeiten</h2>
+                    <span class="last-updated" id="last-updated-rennen"></span>
+                </div>
+                <div class="zeitstrahl" id="zeitstrahl">
+                    <div class="zs-spur"></div>
+                    <div class="zs-ticks" id="zs-ticks"></div>
+                    <div class="zs-marker-at" id="zs-marker-at" hidden>
+                        <div class="zs-at-linie"></div>
+                        <div class="zs-at-label">AT</div>
+                    </div>
+                    <div class="zs-marker-ebene" id="zs-marker-ebene"></div>
+                </div>
+                <div id="rangliste-body">
+                    <div class="loading">Lade Zeiten …</div>
+                </div>
+            </div>
+
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <h2>🏆 Punkte-Rangliste diesen Monat</h2>
+                    <span class="last-updated" id="last-updated-punkte"></span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Rang</th><th>Spieler</th><th>Punkte</th><th>Maps gespielt</th><th>Siege</th></tr>
+                        </thead>
+                        <tbody id="leaderboard-body">
+                            <tr><td colspan="5" class="loading">Lade Daten …</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section-title">📈 Überblick</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Spieler</h3>
+                    <div class="value" id="stat-spieler">—</div>
+                </div>
+                <div class="stat-card blue">
+                    <h3>Rekorde diesen Monat</h3>
+                    <div class="value" id="stat-records">—</div>
+                </div>
+                <div class="stat-card green">
+                    <h3>Führender Spieler</h3>
+                    <div class="value" id="stat-fuehrend" style="font-size:18px">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-col-neben">
+            <div class="panel" id="tmx-panel">
+                <div class="panel-header"><h2>🌐 Map-Info</h2></div>
+                <div id="tmx-body"><div class="loading" style="padding:12px">Lade …</div></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header"><h2>🖥️ Server-Status</h2></div>
+                <div class="system-stat-row">
+                    <div class="kopf"><span>CPU-Auslastung</span><span class="wert" id="cpu-text">—</span></div>
+                    <div class="gap-bar-track"><div class="gap-bar-fill" id="cpu-bar" style="width:0%"></div></div>
+                </div>
+                <div class="system-stat-row">
+                    <div class="kopf"><span>RAM-Auslastung</span><span class="wert" id="ram-text">—</span></div>
+                    <div class="gap-bar-track"><div class="gap-bar-fill" id="ram-bar" style="width:0%"></div></div>
+                </div>
+                <div class="server-kleine-stats">
+                    <div class="kleine-stat accent"><h4>Spieler</h4><div class="wert" id="server-spieler">—</div></div>
+                    <div class="kleine-stat"><h4>Controller aktiv seit</h4><div class="wert" id="server-laufzeit" style="font-size:13px">—</div></div>
+                </div>
+            </div>
+
+            <div class="panel log-panel">
+                <div class="panel-header"><h2>📜 Gaming-Log</h2></div>
+                <div class="log-liste" id="log-liste" data-leer="1">
+                    <div class="loading" style="padding:20px">Lade Ereignisse …</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="assets/app.js?v=9"></script>
+<script>
+let mapsCache = [];
+let ausgewaehlteUid = null;
+let folgeLive = true; // solange true: Auswahl folgt automatisch der live geladenen Map
+
+// ── TMX-Map-Info-Widget: laedt NUR bei UID-Wechsel neu (Session-Cache), nie pro 5s-Poll ──
+let tmxAngezeigteUid = null;
+const tmxJsCache = new Map(); // uid -> {gefunden, daten}
+const TMX_SCHWIERIGKEIT = ['Anfänger', 'Fortgeschritten', 'Schwer', 'Experte'];
+
+// ── Zeiten-Liste: keyed Rendering (Zeilen/Marker bleiben pro Spieler erhalten,
+//    damit Platzwechsel/Zeit-Updates animiert werden koennen) ─────────────────
+const REDUZIERTE_BEWEGUNG = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const zeilenProId = new Map();   // id -> .rang-row-Element
+const markerProId = new Map();   // id -> .zs-marker-Element
+let ranglisteSnapshot = new Map(); // id -> {zeit, rang} vom letzten Poll (Diff-Erkennung)
+let ranglisteMapUid = null;      // Map der aktuell aufgebauten Liste (Reset bei Wechsel)
+
+/** Wurzel-Skala: kleine Abstaende bleiben unterscheidbar, Ausreisser stauchen das Feld nicht. */
+function wurzelPos(gapMs, maxGapMs) {
+    if (maxGapMs <= 0 || gapMs <= 0) return 0;
+    return Math.min(100, Math.sqrt(gapMs) / Math.sqrt(maxGapMs) * 100);
+}
+
+/** Kurzes Gap-Label fuer Zeitstrahl-Ticks ("+2,3s" / "+1:05"). */
+function formatZeitKurz(ms) {
+    const s = ms / 1000;
+    if (s >= 60) { const m = Math.floor(s / 60); return `+${m}:${String(Math.round(s % 60)).padStart(2, '0')}`; }
+    return '+' + (s >= 10 ? s.toFixed(1) : s.toFixed(2)).replace('.', ',') + 's';
+}
+
+function kurzName(name, max = 12) {
+    return name.length > max ? name.slice(0, max - 1) + '…' : name;
+}
+
+/** Einmal-Animation: Klasse neu setzen (mit Restart) und nach animationend wieder entfernen. */
+function blinkKlasse(el, klasse) {
+    if (REDUZIERTE_BEWEGUNG) return;
+    el.classList.remove(klasse);
+    void el.offsetWidth; // Reflow erzwingen, damit die Animation neu startet
+    el.classList.add(klasse);
+    el.addEventListener('animationend', () => el.classList.remove(klasse), { once: true });
+}
+
+/** Liste komplett verwerfen (Map-Wechsel/Fehler) — kein Cross-Map-Animieren. */
+function setzeRanglisteZurueck() {
+    zeilenProId.clear();
+    markerProId.clear();
+    ranglisteSnapshot = new Map();
+    document.getElementById('rangliste-body').innerHTML = '';
+    document.getElementById('zeitstrahl').classList.remove('sichtbar');
+    document.getElementById('zs-marker-ebene').innerHTML = '';
+    document.getElementById('zs-marker-at').hidden = true;
+}
+
+function erzeugeRangZeile(id) {
+    const div = document.createElement('div');
+    div.className = 'rang-row';
+    div.dataset.id = id;
+    div.innerHTML = `
+        <div class="rang"></div>
+        <div class="spieler-name"><span class="online-dot"></span><a></a></div>
+        <div class="zeit"></div>
+        <div class="intervall"></div>
+        <div class="gap-wrap">
+            <div class="gap-text"></div>
+            <div class="gap-bar-track"><div class="gap-bar-fill"></div></div>
+        </div>`;
+    return div;
+}
+
+function erzeugeMarker(id) {
+    const div = document.createElement('div');
+    div.className = 'zs-marker';
+    div.dataset.id = id;
+    div.innerHTML = '<div class="zs-name"></div><div class="zs-stiel"></div><div class="zs-dot"></div>';
+    return div;
+}
+
+/** Zeitstrahl: Fahrer proportional (Wurzel-Skala) auf der Zeit-Achse, Marker gleiten per CSS-Transition.
+ *  authorTimeMs (optional): Autorenzeit der Map -- bewegt sich wie ein echter Fahrer auf derselben
+ *  farbigen Skala (siehe verschiebung unten), geht aber nirgends in Listen/Logging/Wertung ein. */
+function aktualisiereZeitstrahl(leaderboard, erstaufbau, authorTimeMs) {
+    const wrap = document.getElementById('zeitstrahl');
+    const ebene = document.getElementById('zs-marker-ebene');
+    const atMarker = document.getElementById('zs-marker-at');
+    const leaderZeit = leaderboard[0]?.zeit;
+
+    // Nullpunkt (0%) der Skala ist die schnellste Zeit im Feld -- normalerweise der Fuehrende,
+    // aber wenn die Autorenzeit schneller ist, ruttscht sie selbst auf die 0%-Position (P1-Platz),
+    // wie ein echter Fahrer. "verschiebung" haengt alle Spieler-Gaps (die serverseitig relativ zum
+    // menschlichen Fuehrenden berechnet sind, siehe api.php) auf diesen ggf. neuen Nullpunkt um.
+    const atGapZumFuehrenden = authorTimeMs == null ? null : authorTimeMs - leaderZeit; // meist negativ
+    const verschiebung = atGapZumFuehrenden != null && atGapZumFuehrenden < 0 ? -atGapZumFuehrenden : 0;
+    const atGap = atGapZumFuehrenden == null ? null : atGapZumFuehrenden + verschiebung; // >= 0
+    const maxGap = Math.max(...leaderboard.map((r) => r.gapMs + verschiebung), atGap ?? 0, 0);
+
+    if (leaderboard.length < 2 || maxGap <= 0) {
+        wrap.classList.remove('sichtbar');
+        ebene.innerHTML = '';
+        markerProId.clear();
+        atMarker.hidden = true;
+        return;
+    }
+    wrap.classList.add('sichtbar');
+
+    if (authorTimeMs == null) {
+        atMarker.hidden = true;
+    } else {
+        atMarker.style.left = wurzelPos(atGap, maxGap) + '%';
+        atMarker.title = atGapZumFuehrenden < 0
+            ? `Autorenzeit ${formatZeit(authorTimeMs)} (−${formatZeit(-atGapZumFuehrenden)} vor Führendem)`
+            : atGapZumFuehrenden === 0
+                ? `Autorenzeit ${formatZeit(authorTimeMs)} (gleichauf mit Führendem)`
+                : `Autorenzeit ${formatZeit(authorTimeMs)} (+${formatZeit(atGapZumFuehrenden)} hinter Führendem)`;
+        atMarker.hidden = false;
+    }
+
+    // Ticks: 3 Stuetzstellen, auf der Wurzelachse gleichmaessig verteilt (1/3, 2/3, Ende)
+    document.getElementById('zs-ticks').innerHTML = [1 / 9, 4 / 9, 1].map((f) =>
+        `<div class="zs-tick" style="left:${Math.sqrt(f) * 100}%"><div class="strich"></div><div class="label">${formatZeitKurz(maxGap * f)}</div></div>`
+    ).join('');
+
+    // Namensbeschriftungen kollidieren bei eng zusammenliegenden Teilnehmern, wenn die Ebene
+    // (obere/untere Zeile) rein nach Rang-Paritaet vergeben wird -- bei 3+ Teilnehmern im selben
+    // engen Cluster reicht eine feste Alternierung nicht, es braucht eine Abstandspruefung gegen
+    // die zuletzt in derselben Ebene platzierte Beschriftung (Positionen sind bereits linksbuendig
+    // nach Rang sortiert, da leaderboard nach gapMs aufsteigend kommt). Bleibt in beiden Ebenen kein
+    // Platz, wird nur die Beschriftung ausgeblendet -- der Punkt inkl. Tooltip bleibt sichtbar.
+    const positionen = leaderboard.map((e) => wurzelPos(e.gapMs + verschiebung, maxGap));
+    const breitePx = wrap.getBoundingClientRect().width || 600;
+    const MIN_NAME_ABSTAND_PROZENT = (70 / breitePx) * 100;
+    const letzterPosProEbene = [-Infinity, -Infinity];
+    const ebenenZuweisung = positionen.map((pos) => {
+        for (let e = 0; e < letzterPosProEbene.length; e++) {
+            if (pos - letzterPosProEbene[e] >= MIN_NAME_ABSTAND_PROZENT) {
+                letzterPosProEbene[e] = pos;
+                return e;
+            }
+        }
+        return -1;
+    });
+
+    const vorhandene = new Set();
+    leaderboard.forEach((e, i) => {
+        vorhandene.add(e.id);
+        let m = markerProId.get(e.id);
+        if (!m) {
+            m = erzeugeMarker(e.id);
+            ebene.appendChild(m);
+            markerProId.set(e.id, m);
+            if (!erstaufbau) blinkKlasse(m, 'zeile-neu');
+        }
+        m.style.left = positionen[i] + '%';
+        m.classList.toggle('gold', i === 0);
+        m.classList.toggle('online', !!e.online);
+        m.classList.toggle('ebene1', ebenenZuweisung[i] === 1);
+        m.classList.toggle('name-verdeckt', ebenenZuweisung[i] === -1);
+        m.querySelector('.zs-name').textContent = kurzName(e.name);
+        m.title = `${e.name} — ${i === 0 ? formatZeit(e.zeit) : '+' + formatZeit(e.gapMs)}`;
+    });
+    markerProId.forEach((el, id) => {
+        if (!vorhandene.has(id)) { el.remove(); markerProId.delete(id); }
+    });
+}
+
+/** TMX-Map-Info-Widget rendern (Nicht-Fund/Fehler => dezenter Leerzustand, reisst die Seite nie mit). */
+function renderTmxWidget(antwort) {
+    const body = document.getElementById('tmx-body');
+    if (!antwort || !antwort.gefunden || !antwort.daten) {
+        body.innerHTML = '<div class="no-records">Keine TMX-Daten zu dieser Map</div>';
+        return;
+    }
+    const d = antwort.daten;
+    const bildUrl = d.mapId ? `https://trackmania.exchange/mapimage/${encodeURIComponent(d.mapId)}` : null;
+    const tags = (d.tags || []).map((t) =>
+        `<span class="tmx-tag" style="${t.farbe ? `border-color:#${t.farbe}66;color:#${t.farbe}` : ''}">${sanitize(t.name)}</span>`).join('');
+    const schwierigkeit = (d.schwierigkeit != null && TMX_SCHWIERIGKEIT[d.schwierigkeit]) ? TMX_SCHWIERIGKEIT[d.schwierigkeit] : null;
+
+    body.innerHTML = `
+        ${bildUrl ? `<img class="tmx-bild" src="${bildUrl}" alt="Vorschaubild" onerror="this.remove()">` : ''}
+        <div class="tmx-name">${sanitize(d.name || '—')}</div>
+        <div class="tmx-autoren">${d.autoren && d.autoren.length ? 'von ' + sanitize(d.autoren.join(', ')) : ''}</div>
+        ${tags ? `<div class="tmx-tags">${tags}</div>` : ''}
+        <dl class="tmx-meta">
+            ${schwierigkeit ? `<dt>Schwierigkeit</dt><dd>${schwierigkeit}</dd>` : ''}
+            ${d.laenge != null ? `<dt>Länge</dt><dd>${sanitize(String(d.laenge))}</dd>` : ''}
+            ${d.autorenzeitTmx != null ? `<dt>Autorenzeit</dt><dd>${formatZeit(d.autorenzeitTmx)}</dd>` : ''}
+            ${d.awards != null ? `<dt>Awards</dt><dd>${d.awards} 🏆</dd>` : ''}
+            ${d.hochgeladenAm ? `<dt>Hochgeladen</dt><dd>${new Date(d.hochgeladenAm).toLocaleDateString('de-DE')}</dd>` : ''}
+        </dl>
+        ${d.mapId ? `<a class="tmx-link" href="https://trackmania.exchange/mapshow/${encodeURIComponent(d.mapId)}" target="_blank" rel="noopener">Auf trackmania.exchange ansehen →</a>` : ''}`;
+}
+
+/** Laedt Map-Infos von TMX -- NUR bei UID-Wechsel (Guard + Session-Cache), niemals pro 5s-Poll. */
+async function ladeMapInfo(uid) {
+    if (!uid || uid === tmxAngezeigteUid) return;
+    tmxAngezeigteUid = uid;
+    try {
+        let antwort = tmxJsCache.get(uid);
+        if (!antwort) {
+            antwort = await ladeApi('mapInfo', { uid });
+            tmxJsCache.set(uid, antwort);
+        }
+        if (uid !== tmxAngezeigteUid) return; // Nutzer hat inzwischen weitergeklickt
+        renderTmxWidget(antwort);
+    } catch (e) {
+        if (uid !== tmxAngezeigteUid) return;
+        renderTmxWidget(null);
+    }
+}
+
+function waehleMap(uid, liveMapUid) {
+    ausgewaehlteUid = uid;
+    folgeLive = (uid === liveMapUid);
+    renderChips(liveMapUid);
+    ladeRangliste();
+}
+
+function renderChips(liveMapUid) {
+    const chips = document.getElementById('map-chips');
+    chips.innerHTML = mapsCache.map((m) => `
+        <div class="map-chip ${m.uid === ausgewaehlteUid ? 'active' : ''}" data-uid="${m.uid}" onclick="waehleMap('${m.uid}', ${liveMapUid ? `'${liveMapUid}'` : 'null'})">
+            ${m.uid === liveMapUid ? '<span class="chip-live-dot"></span>' : ''}${sanitize(m.name)}
+        </div>`).join('');
+}
+
+async function ladeRangliste() {
+    if (!ausgewaehlteUid) return;
+    try {
+        const daten = await ladeApi('live', { uid: ausgewaehlteUid });
+        const titel = document.getElementById('ausgewaehlte-map-titel');
+        const zeigeLive = daten.istLiveMap && daten.aktuell !== false;
+        titel.innerHTML = daten.map
+            ? `🏁 Zeiten – ${sanitize(daten.map.name)}${zeigeLive ? ' <span class="live-dot" style="margin-left:6px"></span><span style="color:var(--accent);font-size:12px">LIVE</span>' : ''}`
+            : '🏁 Zeiten';
+        if (daten.map?.uid) ladeMapInfo(daten.map.uid); // fire-and-forget, unabhaengig von der Rangliste
+
+        // Map-Wechsel (oder vorheriger Fehler-/Leer-Zustand): sauber neu aufbauen,
+        // sonst wuerden Zeilen von der alten Map zur neuen "hinueber-animieren".
+        if (ranglisteMapUid !== ausgewaehlteUid) {
+            setzeRanglisteZurueck();
+            ranglisteMapUid = ausgewaehlteUid;
+        }
+
+        const rangliste = document.getElementById('rangliste-body');
+        if (!daten.leaderboard.length) {
+            setzeRanglisteZurueck();
+            rangliste.innerHTML = '<div class="no-records">Noch keine Zeiten auf dieser Map</div>';
+            document.getElementById('last-updated-rennen').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-DE');
+            return;
+        }
+        // Nach Leer-/Fehlerzustand steht noch die Meldung drin — vor keyed Rendering raeumen
+        if (zeilenProId.size === 0) rangliste.innerHTML = '';
+
+        const erstaufbau = zeilenProId.size === 0;
+        const maxGap = Math.max(...daten.leaderboard.map((r) => r.gapMs), 1);
+
+        // FLIP Schritt 1: Positionen der vorhandenen Zeilen VOR dem Umsortieren messen
+        const positionenVorher = new Map();
+        if (!erstaufbau && !REDUZIERTE_BEWEGUNG) {
+            zeilenProId.forEach((el, id) => {
+                if (el.isConnected) positionenVorher.set(id, el.getBoundingClientRect().top);
+            });
+        }
+
+        // Zeilen aktualisieren/erzeugen und in Zielreihenfolge anhaengen
+        const vorhandene = new Set();
+        daten.leaderboard.forEach((e, i) => {
+            vorhandene.add(e.id);
+            let div = zeilenProId.get(e.id);
+            const neu = !div;
+            if (neu) {
+                div = erzeugeRangZeile(e.id);
+                zeilenProId.set(e.id, div);
+            }
+
+            const rangEl = div.querySelector('.rang');
+            rangEl.textContent = '#' + (i + 1);
+            rangEl.className = 'rang ' + rangKlasse(i);
+
+            const link = div.querySelector('.spieler-name a');
+            link.textContent = e.name;
+            link.href = 'spieler.html?id=' + encodeURIComponent(e.id);
+
+            div.classList.toggle('online-row', !!e.online);
+            div.querySelector('.zeit').textContent = formatZeit(e.zeit);
+
+            const intervalMs = i === 0 ? 0 : e.gapMs - daten.leaderboard[i - 1].gapMs;
+            const intervall = div.querySelector('.intervall');
+            intervall.textContent = i === 0 ? '—' : '+' + formatZeit(intervalMs);
+            intervall.classList.toggle('leader', i === 0);
+
+            const gapText = div.querySelector('.gap-text');
+            gapText.textContent = i === 0 ? 'Führung' : '+' + formatZeit(e.gapMs);
+            gapText.classList.toggle('leader', i === 0);
+            div.querySelector('.gap-bar-fill').style.width = wurzelPos(e.gapMs, maxGap) + '%';
+
+            // Diff zum letzten Poll: Zeit verbessert und/oder Rang gewechselt?
+            const alt = ranglisteSnapshot.get(e.id);
+            if (alt && !erstaufbau) {
+                const zeitBesser = e.zeit < alt.zeit;
+                if (zeitBesser) blinkKlasse(div.querySelector('.zeit'), 'zeit-blitz');
+                if (alt.rang > i) blinkKlasse(div, 'rang-hoch');
+                else if (alt.rang < i) blinkKlasse(div, 'rang-runter');
+                else if (zeitBesser) blinkKlasse(div, 'zeit-neu');
+            } else if (neu && !erstaufbau) {
+                blinkKlasse(div, 'zeile-neu');
+            }
+
+            rangliste.appendChild(div); // appendChild in Schleifen-Reihenfolge = Umsortieren
+        });
+
+        // Verschwundene Zeilen entfernen (z.B. Rekord geloescht)
+        zeilenProId.forEach((el, id) => {
+            if (!vorhandene.has(id)) { el.remove(); zeilenProId.delete(id); }
+        });
+
+        // FLIP Schritt 2: vom alten Platz zum neuen gleiten lassen
+        if (positionenVorher.size) {
+            zeilenProId.forEach((el, id) => {
+                const oben = positionenVorher.get(id);
+                if (oben === undefined) return;
+                const delta = oben - el.getBoundingClientRect().top;
+                if (Math.abs(delta) < 2) return;
+                el.style.transition = 'none';
+                el.style.transform = `translateY(${delta}px)`;
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    el.style.transition = '';
+                    el.style.transform = '';
+                }));
+            });
+        }
+
+        aktualisiereZeitstrahl(daten.leaderboard, erstaufbau, daten.map?.authorTime ?? null);
+        ranglisteSnapshot = new Map(daten.leaderboard.map((e, i) => [e.id, { zeit: e.zeit, rang: i }]));
+        document.getElementById('last-updated-rennen').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-DE');
+    } catch (e) {
+        setzeRanglisteZurueck();
+        ranglisteMapUid = null; // beim naechsten erfolgreichen Poll komplett neu aufbauen
+        document.getElementById('rangliste-body').innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+
+async function ladePunkte() {
+    const daten = await ladeApi('monat', { m: new Date().toISOString().slice(0, 7) });
+    const eintraege = daten.eintraege;
+    document.getElementById('stat-spieler').textContent = eintraege.length;
+    document.getElementById('stat-records').textContent = eintraege.reduce((s, e) => s + e.mapsGespielt, 0);
+    document.getElementById('stat-fuehrend').textContent = eintraege[0]?.name ?? '—';
+
+    const tbody = document.getElementById('leaderboard-body');
+    tbody.innerHTML = eintraege.length
+        ? eintraege.map((e, i) => `
+            <tr>
+                <td class="rank ${rangKlasse(i)}">#${i + 1}</td>
+                <td class="player-name">${spielerLink(e.id, e.name)}</td>
+                <td class="points">${e.punkte.toLocaleString('de-DE')}</td>
+                <td>${e.mapsGespielt}</td>
+                <td class="wins-cell">${e.siege}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="no-records">Noch keine Zeiten diesen Monat</td></tr>';
+    document.getElementById('last-updated-punkte').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-DE');
+}
+
+function renderSystemStatus(live, serverOffline) {
+    if (serverOffline) {
+        document.getElementById('cpu-bar').style.width = '0%';
+        document.getElementById('cpu-text').textContent = 'Offline';
+        document.getElementById('ram-bar').style.width = '0%';
+        document.getElementById('ram-text').textContent = 'Offline';
+        document.getElementById('server-spieler').textContent = '—';
+        document.getElementById('server-laufzeit').textContent = '—';
+        return;
+    }
+    if (live.system) {
+        const cpu = Math.min(100, live.system.cpuPercent ?? 0);
+        document.getElementById('cpu-bar').style.width = cpu + '%';
+        document.getElementById('cpu-text').textContent = cpu.toFixed(1) + ' %';
+
+        const ram = Math.min(100, live.system.ramPercent ?? 0);
+        document.getElementById('ram-bar').style.width = ram + '%';
+        document.getElementById('ram-text').textContent = `${live.system.ramUsedMb} / ${live.system.ramTotalMb} MB`;
+    }
+    if (live.server) {
+        document.getElementById('server-spieler').textContent = live.server.maxSpieler
+            ? `${live.server.spielerAnzahl} / ${live.server.maxSpieler}`
+            : String(live.server.spielerAnzahl);
+        if (live.server.controllerLaeuftSeit) {
+            const minuten = Math.floor((Date.now() - new Date(live.server.controllerLaeuftSeit).getTime()) / 60000);
+            document.getElementById('server-laufzeit').textContent = formatSpielzeit(Math.max(0, minuten));
+        }
+    }
+}
+
+function setServerOffline(offline, zuletzt) {
+    const banner = document.getElementById('server-offline-banner');
+    const seit = document.getElementById('offline-seit');
+    banner.classList.toggle('sichtbar', offline);
+    seit.textContent = offline && zuletzt ? `(zuletzt aktiv: ${new Date(zuletzt).toLocaleString('de-DE')})` : '';
+}
+
+// ── Laufschrift-Ticker "Zuletzt verbessert" -- eigener Cursor, eigener Poll,
+//    unabhaengig vom generischen Gaming-Log (siehe ladeLog() weiter unten) ──
+let letzteVerbesserungId = null;
+let verbesserungenListe = []; // neueste zuerst, gedeckelt auf 10
+
+function vtIconFuer(text) {
+    if (text.includes('aufgestellt')) return '🥇';
+    if (text.includes('egalisiert')) return '🤝';
+    return '⚡';
+}
+
+function renderVerbesserungenTicker() {
+    const track = document.getElementById('verbesserungen-track');
+    if (!verbesserungenListe.length) {
+        track.innerHTML = '<span class="vt-leer">Noch keine Verbesserungen …</span>';
+        track.classList.add('vt-statisch');
+        return;
+    }
+
+    const itemsHtml = verbesserungenListe.map((e) => {
+        // Delta-Zahl (z.B. "-0.025") am Zeilenende optisch hervorheben, falls vorhanden
+        const textHtml = sanitize(e.text).replace(/, (-?\d+\.\d{3})\)$/, ', <span class="vt-delta">$1</span>)');
+        return `<span class="vt-item"><span class="vt-icon">${vtIconFuer(e.text)}</span>${textHtml}</span>`;
+    }).join('');
+    // Inhalt fuer nahtlose Schleife duplizieren (Animation faehrt bis -50% = eine Kopie weiter)
+    track.innerHTML = itemsHtml + itemsHtml;
+    track.classList.remove('vt-statisch');
+
+    // Geschwindigkeit unabhaengig von der Textlaenge ungefaehr konstant halten
+    requestAnimationFrame(() => {
+        const einzelBreite = track.scrollWidth / 2;
+        const PX_PRO_SEK = 55;
+        track.style.setProperty('--vt-dauer', `${Math.max(12, einzelBreite / PX_PRO_SEK)}s`);
+    });
+}
+
+async function ladeVerbesserungen() {
+    try {
+        const params = { typ: 'rekord' };
+        if (letzteVerbesserungId) params.seitId = letzteVerbesserungId;
+        const eintraege = await ladeApi('serverLog', params);
+        if (!eintraege.length) return;
+
+        eintraege.forEach((e) => {
+            verbesserungenListe.unshift(e); // Eintraege kommen aeltest -> neuest, unshift dreht auf neuest-zuerst
+            letzteVerbesserungId = e.id;
+        });
+        verbesserungenListe = verbesserungenListe.slice(0, 10);
+        renderVerbesserungenTicker();
+    } catch (e) { /* naechster Poll versucht es erneut */ }
+}
+
+let letzteLogId = null;
+let logAutoScroll = true;
+
+function pruefeAutoScrollPosition() {
+    const el = document.getElementById('log-liste');
+    logAutoScroll = (el.scrollHeight - el.scrollTop - el.clientHeight) < 40;
+}
+
+async function ladeLog() {
+    try {
+        const eintraege = await ladeApi('serverLog', letzteLogId ? { seitId: letzteLogId } : {});
+        if (!eintraege.length) return;
+
+        const el = document.getElementById('log-liste');
+        if (el.dataset.leer === '1') { el.innerHTML = ''; delete el.dataset.leer; }
+
+        eintraege.forEach((e) => {
+            const div = document.createElement('div');
+            div.className = `log-eintrag log-${e.typ}`;
+            const zeit = e.zeit ? new Date(e.zeit).toLocaleTimeString('de-DE') : '';
+            div.innerHTML = `<span class="log-zeit">${zeit}</span><span class="log-text">${sanitize(e.text)}</span>`;
+            el.appendChild(div);
+            letzteLogId = e.id;
+        });
+
+        while (el.children.length > 200) el.removeChild(el.firstChild);
+        if (logAutoScroll) el.scrollTop = el.scrollHeight;
+    } catch (e) { /* naechster Poll versucht es erneut */ }
+}
+
+async function laden() {
+    try {
+        const live = await ladeApi('live');
+        const liveMapUid = live.map?.uid ?? null;
+
+        // "aktuell" = false bedeutet: der Snapshot von liveStatus.js (Controller) ist
+        // veraltet (aelter als 3 Aktualisierungs-Zyklen) -- Server/Controller laufen
+        // vermutlich nicht mehr. Ohne diese Pruefung wuerde die Website den letzten
+        // bekannten Stand (z.B. "online"-Spieler von vor Stunden) weiter als aktuell zeigen.
+        // Header-Status richtet sich nach demselben Signal, statt nur zu pruefen ob
+        // die API selbst geantwortet hat -- sonst widerspricht "Verbunden" dem Banner.
+        const serverOffline = live.aktuell === false;
+        setConnectionStatus(!serverOffline, undefined, undefined, 'Server/Controller nicht erreichbar');
+        setServerOffline(serverOffline, live.zuletztAktualisiert);
+        renderSystemStatus(live, serverOffline);
+
+        const online = document.getElementById('online-badges');
+        if (serverOffline) {
+            online.innerHTML = '<span style="color:var(--accent);font-size:13px">Server/Controller nicht erreichbar</span>';
+        } else {
+            online.innerHTML = live.onlineSpieler.length
+                ? live.onlineSpieler.map((n) => `<div class="spieler-badge"><span class="dot"></span>${sanitize(n)}</div>`).join('')
+                : '<span style="color:var(--text-dim);font-size:13px">Niemand online</span>';
+        }
+
+        mapsCache = await ladeApi('maps');
+
+        // Auswahl automatisch der live geladenen Map nachfuehren (auch bei Streckenwechsel),
+        // solange der Nutzer nicht bewusst eine andere Map ausgewaehlt hat.
+        if (folgeLive && liveMapUid) {
+            ausgewaehlteUid = liveMapUid;
+        } else if (!ausgewaehlteUid) {
+            ausgewaehlteUid = liveMapUid ?? mapsCache[0]?.uid ?? null;
+        }
+        renderChips(liveMapUid);
+
+        await ladeRangliste();
+        await ladePunkte();
+    } catch (e) {
+        setConnectionStatus(false);
+        document.getElementById('rangliste-body').innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+document.getElementById('log-liste').addEventListener('scroll', pruefeAutoScrollPosition);
+
+laden();
+ladeLog();
+ladeVerbesserungen();
+setInterval(laden, 5000);
+setInterval(ladeLog, 4000);
+setInterval(ladeVerbesserungen, 4000);
+</script>
+</body>
+</html>

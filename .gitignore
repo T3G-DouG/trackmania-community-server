@@ -1,0 +1,30 @@
+# Secrets — niemals committen
+secrets.env
+*.env
+settings-secrets*
+
+# Node
+node_modules/
+
+# Datenbank-Dumps und Backups
+dumps/
+backups/
+*.7z
+*.zip
+*.bson
+
+# Monatliche Eingabedatei (Betreiber-Input, siehe naechster-monat.example.json)
+scripts/naechster-monat.json
+
+# Betriebssystem
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Docker / lokale Overrides
+docker-compose.override.yml
+*.local
+

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cup · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+    <style>
+        .info-box {
+            background:var(--bg-card); border:1px solid var(--border2); border-radius:16px;
+            padding:20px 24px; margin-bottom:28px; font-size:13px; line-height:1.7; color:var(--text-dim);
+        }
+        .info-box code {
+            background:rgba(255,255,255,0.08); color:var(--accent2); padding:2px 7px;
+            border-radius:5px; font-family:var(--mono); font-size:13px;
+        }
+
+        .status-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; border-radius:14px; font-size:12px; font-weight:700; font-family:var(--font); }
+        .status-badge.laeuft, .status-badge.anmeldung { background:rgba(var(--accent4-rgb),0.15); color:var(--accent4); border:1px solid rgba(var(--accent4-rgb),0.35); }
+        .status-badge.aus { background:rgba(255,255,255,0.06); color:var(--text-dim); border:1px solid rgba(255,255,255,0.12); }
+
+        .cup-chip-liste { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .cup-chip {
+            padding:6px 14px; border-radius:12px; background:rgba(255,255,255,0.06);
+            border:1px solid var(--border2); color:#fff; font-size:13px; font-weight:600;
+        }
+
+        .cup-rang-row {
+            display:grid; grid-template-columns:44px 1fr 90px; align-items:center; gap:12px;
+            padding:10px 14px; border-bottom:1px solid var(--hairline);
+        }
+        .cup-rang-row:last-child { border-bottom:none; }
+        .cup-rang-row.ausgeschieden { opacity:0.5; }
+        .cup-rang-platz { font-family:var(--mono); font-weight:700; color:var(--accent2); text-align:center; }
+        .cup-rang-wert { font-family:var(--mono); font-weight:700; text-align:right; color:#fff; }
+
+        .cup-runde-box {
+            margin-top:18px; padding:14px 16px; background:var(--bg-surface); border-radius:12px;
+            border:1px solid var(--hairline);
+        }
+        .cup-runde-box h4 { font-size:13px; color:var(--text-dim); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; }
+        .cup-runde-ergebnis { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; }
+        .cup-runde-ergebnis .platz { color:var(--accent2); font-weight:700; font-family:var(--mono); }
+
+        .cup-historie-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
+        .cup-historie-karte {
+            background:var(--bg-surface); border:1px solid var(--hairline); border-radius:14px;
+            padding:18px 20px; cursor:pointer; transition:border-color 0.15s;
+        }
+        .cup-historie-karte:hover { border-color:var(--accent2); }
+        .cup-historie-karte h3 { font-size:15px; color:#fff; margin-bottom:4px; }
+        .cup-historie-meta { font-size:12px; color:var(--text-dim); margin-bottom:12px; }
+        .cup-podium { display:flex; flex-direction:column; gap:6px; }
+        .cup-podium-row { display:flex; align-items:center; gap:8px; font-size:13px; }
+        .cup-podium-medal { width:20px; text-align:center; }
+        .cup-historie-karte.abgebrochen { opacity:0.6; }
+        .cup-badge-abgebrochen { font-size:11px; color:var(--error); border:1px solid var(--error); border-radius:8px; padding:2px 8px; }
+
+        .cup-detail-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:flex-start;
+            justify-content:center; padding:40px 16px; z-index:400; overflow-y:auto;
+        }
+        .cup-detail-overlay.versteckt { display:none; }
+        .cup-detail-box {
+            background:var(--bg-card); border:1px solid var(--border2); border-radius:16px;
+            padding:28px; max-width:560px; width:100%;
+        }
+        .cup-detail-box h2 { color:#fff; margin-bottom:4px; }
+        .cup-detail-schliessen {
+            float:right; background:none; border:none; color:var(--text-dim); font-size:20px;
+            cursor:pointer; line-height:1;
+        }
+        .cup-log-zeile { font-size:12px; color:var(--text-dim); padding:4px 0; border-bottom:1px solid var(--hairline); }
+        .cup-log-zeile:last-child { border-bottom:none; }
+        .cup-log-zeit { color:var(--accent2); font-family:var(--mono); margin-right:8px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span id="connection-status">Verbindung wird hergestellt …</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item" href="analysen.html">📊 Analysen</a>
+            <a class="nav-item active" href="cup.html">🏆 Cup</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="section-title">🏆 Cup</div>
+
+    <div class="info-box">
+        Gelegentliche kurze Live-Turniere (KO-/Cup-Format) zusätzlich zum laufenden TimeAttack-Wettbewerb.
+        Anmeldung läuft über Telegram: erst <code>/link</code>, dann <code>/cup anmelden</code>, sobald ein Turnier angekündigt ist.
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>📅 Nächstes Turnier</h2>
+            <span id="cup-naechstes-badge"></span>
+        </div>
+        <div id="cup-naechstes-inhalt"><div class="loading">Lade Turnierstatus …</div></div>
+    </div>
+
+    <div class="panel" id="cup-live-panel" style="display:none">
+        <div class="panel-header">
+            <h2><span class="live-dot"></span> Live</h2>
+            <span id="cup-live-badge"></span>
+        </div>
+        <div id="cup-live-inhalt"></div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header"><h2>📜 Historie</h2></div>
+        <div id="cup-historie-inhalt"><div class="loading">Lade Historie …</div></div>
+    </div>
+</div>
+
+<div class="cup-detail-overlay versteckt" id="cup-detail-overlay">
+    <div class="cup-detail-box">
+        <button class="cup-detail-schliessen" id="cup-detail-schliessen">✕</button>
+        <div id="cup-detail-inhalt"></div>
+    </div>
+</div>
+
+<script src="assets/app.js?v=9"></script>
+<script>
+function formatDatum(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+const FORMAT_LABEL = { phasenko: 'Phasen-KO', knockout: 'Knockout' };
+const MEDAILLEN = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+function renderNaechstesTurnier(turnier) {
+    const badge = document.getElementById('cup-naechstes-badge');
+    const inhalt = document.getElementById('cup-naechstes-inhalt');
+
+    if (!turnier) {
+        badge.innerHTML = '';
+        inhalt.innerHTML = '<div class="no-records">Kein anstehendes Turnier. Ankündigungen kommen über die Telegram-Gruppe.</div>';
+        return;
+    }
+
+    badge.innerHTML = turnier.status === 'anmeldung'
+        ? '<span class="status-badge anmeldung">Anmeldung offen</span>'
+        : '<span class="status-badge aus">Angekündigt</span>';
+
+    let html = `<h3 style="color:#fff;font-size:16px;margin-bottom:6px">${sanitize(turnier.name)}</h3>`;
+    html += `<div style="color:var(--text-dim);font-size:13px;margin-bottom:4px">Format: ${sanitize(FORMAT_LABEL[turnier.format] || turnier.format)}</div>`;
+    if (turnier.geplanterStart) {
+        html += `<div style="color:var(--text-dim);font-size:13px">Geplanter Start: ${formatDatum(turnier.geplanterStart)}</div>`;
+    }
+    html += `<div style="margin-top:12px;color:var(--text-dim);font-size:13px">${turnier.teilnehmerAnzahl} Teilnehmer angemeldet</div>`;
+    if (turnier.teilnehmer.length) {
+        html += '<div class="cup-chip-liste">' + turnier.teilnehmer.map((n) => `<div class="cup-chip">${sanitize(n)}</div>`).join('') + '</div>';
+    }
+    inhalt.innerHTML = html;
+}
+
+function renderLive(live) {
+    const panel = document.getElementById('cup-live-panel');
+    const badge = document.getElementById('cup-live-badge');
+    const inhalt = document.getElementById('cup-live-inhalt');
+
+    if (!live || !live.aktiv) { panel.style.display = 'none'; return; }
+    panel.style.display = '';
+
+    badge.innerHTML = '<span class="status-badge laeuft"><span class="live-dot"></span>' + sanitize(live.phaseName || live.status) + '</span>';
+
+    let html = `<h3 style="color:#fff;font-size:16px;margin-bottom:12px">${sanitize(live.name || '')}</h3>`;
+    if (live.rangliste.length) {
+        html += live.rangliste.map((r, i) => `
+            <div class="cup-rang-row">
+                <div class="cup-rang-platz">${i + 1}</div>
+                <div>${sanitize(r.name)}</div>
+                <div class="cup-rang-wert">${r.wert}</div>
+            </div>`).join('');
+    } else {
+        html += '<div class="no-records">Noch keine Zwischenrangliste.</div>';
+    }
+    if (live.letzteRunde && live.letzteRunde.ergebnisse.length) {
+        html += '<div class="cup-runde-box"><h4>Letzte Runde</h4>' + live.letzteRunde.ergebnisse
+            .slice().sort((a, b) => a.platz - b.platz)
+            .map((e) => `<div class="cup-runde-ergebnis"><span>${sanitize(e.name)}</span><span class="platz">#${e.platz}</span></div>`).join('') + '</div>';
+    }
+    inhalt.innerHTML = html;
+}
+
+function renderHistorie(liste) {
+    const inhalt = document.getElementById('cup-historie-inhalt');
+    if (!liste.length) {
+        inhalt.innerHTML = '<div class="no-records">Es gab noch keinen Cup.</div>';
+        return;
+    }
+    inhalt.innerHTML = '<div class="cup-historie-grid">' + liste.map((t) => `
+        <div class="cup-historie-karte${t.status === 'abgebrochen' ? ' abgebrochen' : ''}" data-id="${t.id}">
+            <h3>${sanitize(t.name)}</h3>
+            <div class="cup-historie-meta">
+                ${sanitize(FORMAT_LABEL[t.format] || t.format)} · ${formatDatum(t.abgeschlossenAm)} · ${t.teilnehmerAnzahl} Teilnehmer
+                ${t.status === 'abgebrochen' ? '<span class="cup-badge-abgebrochen">abgebrochen</span>' : ''}
+            </div>
+            <div class="cup-podium">${t.podium.map((p) => `
+                <div class="cup-podium-row"><span class="cup-podium-medal">${MEDAILLEN[p.platz] || p.platz + '.'}</span><span>${sanitize(p.name)}</span></div>
+            `).join('') || '<span class="no-records" style="padding:0">Kein Endstand.</span>'}</div>
+        </div>`).join('') + '</div>';
+
+    inhalt.querySelectorAll('.cup-historie-karte').forEach((karte) => {
+        karte.addEventListener('click', () => zeigeDetail(karte.dataset.id));
+    });
+}
+
+async function zeigeDetail(id) {
+    const overlay = document.getElementById('cup-detail-overlay');
+    const inhalt = document.getElementById('cup-detail-inhalt');
+    inhalt.innerHTML = '<div class="loading">Lade …</div>';
+    overlay.classList.remove('versteckt');
+    try {
+        const t = await ladeApi('cupDetail', { id });
+        let html = `<h2>${sanitize(t.name)}</h2>`;
+        html += `<div style="color:var(--text-dim);font-size:13px;margin-bottom:16px">${sanitize(FORMAT_LABEL[t.format] || t.format)} · ${formatDatum(t.abgeschlossenAm)} · ${t.teilnehmerAnzahl} Teilnehmer</div>`;
+        if (t.endstand.length) {
+            html += '<div class="cup-podium" style="margin-bottom:18px">' + t.endstand.map((e) => `
+                <div class="cup-podium-row"><span class="cup-podium-medal">${MEDAILLEN[e.platz] || e.platz + '.'}</span><span>${sanitize(e.name)}</span></div>
+            `).join('') + '</div>';
+        }
+        html += '<h4 style="font-size:13px;color:var(--text-dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Verlauf</h4>';
+        html += t.ereignisLog.map((e) => `<div class="cup-log-zeile"><span class="cup-log-zeit">${formatDatum(e.zeit)}</span>${sanitize(e.text)}</div>`).join('') || '<div class="no-records">Kein Verlauf.</div>';
+        inhalt.innerHTML = html;
+    } catch (e) {
+        inhalt.innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+
+document.getElementById('cup-detail-schliessen').addEventListener('click', () => {
+    document.getElementById('cup-detail-overlay').classList.add('versteckt');
+});
+document.getElementById('cup-detail-overlay').addEventListener('click', (ev) => {
+    if (ev.target.id === 'cup-detail-overlay') ev.currentTarget.classList.add('versteckt');
+});
+
+async function laden() {
+    try {
+        const [naechstes, live, historie] = await Promise.all([
+            ladeApi('cup'), ladeApi('cupLive'), ladeApi('cupHistorie'),
+        ]);
+        setConnectionStatus(true);
+        await pruefeServerErreichbarkeit();
+        renderNaechstesTurnier(naechstes.turnier);
+        renderLive(live);
+        renderHistorie(historie);
+    } catch (e) {
+        setConnectionStatus(false);
+        document.getElementById('cup-naechstes-inhalt').innerHTML = `<div class="error">Fehler: ${sanitize(e.message)}</div>`;
+    }
+}
+laden();
+setInterval(laden, 5000);
+</script>
+</body>
+</html>

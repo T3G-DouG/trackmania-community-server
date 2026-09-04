@@ -1,0 +1,45 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  controller:
+    build:
+      context: .
+      dockerfile: controller/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      MONGO_HOST: mongo
+      MONGO_DB: ${MONGO_DB:-nextcontrol}
+      TM_SERVER_HOST: ${TM_SERVER_HOST}
+      TRACKMANIA_PORT: ${TRACKMANIA_PORT:-5555}
+      TM_MAPS_DIR: /data/maps
+      TM_MATCHSETTINGS_DIR: /data/maps/MatchSettings
+      TRACKMANIA_SECRETS_PATH: /run/secrets/secrets.env
+      KI_AUS: ${KI_AUS:-true}
+      NACHRICHTEN_KI_AUS: ${NACHRICHTEN_KI_AUS:-true}
+      CUP_TELEGRAM_AKTIV: ${CUP_TELEGRAM_AKTIV:-false}
+    volumes:
+      - ${TM_USERDATA_MAPS_DIR}:/data/maps
+      - ${SECRETS_FILE}:/run/secrets/secrets.env:ro
+
+  website:
+    build: ./website
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "${WEBSITE_PORT:-8080}:80"
+    environment:
+      MONGO_HOST: mongo
+      MONGO_DB: ${MONGO_DB:-nextcontrol}
+      TRACKMANIA_SECRETS_PATH: /run/secrets/secrets.env
+    volumes:
+      - ${SECRETS_FILE}:/run/secrets/secrets.env:ro
+
+volumes:
+  mongo-data:

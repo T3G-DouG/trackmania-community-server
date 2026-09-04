@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spieler-Handout · Trackmania Competition Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/theme.css?v=5">
+    <style>
+        /* ── Handout-spezifische Bausteine (bauen auf theme.css-Tokens auf) ── */
+        .hero {
+            background:linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-deep) 100%);
+            border:1px solid var(--border); border-radius:18px; padding:40px 32px; margin-bottom:32px;
+            position:relative; overflow:hidden;
+        }
+        .hero::after {
+            content:''; position:absolute; top:-40%; right:-10%; width:340px; height:340px;
+            background:radial-gradient(circle, rgba(var(--accent-rgb),0.14), transparent 70%); pointer-events:none;
+        }
+        .hero .kicker { font-family:var(--font-label); font-size:12px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--accent); }
+        .hero h1 { font-family:var(--font-display); font-size:32px; font-weight:700; color:#fff; letter-spacing:0.5px; margin:10px 0 14px; line-height:1.1; }
+        .hero p { font-size:15px; color:var(--text-dim); max-width:760px; line-height:1.6; }
+        .hero p + p { margin-top:12px; }
+        @media(max-width:768px){ .hero h1{ font-size:24px; } .hero{ padding:28px 20px; } }
+
+        /* Inhaltsverzeichnis */
+        .toc { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:36px; }
+        .toc a {
+            padding:9px 16px; border-radius:20px; font-family:var(--font-label); font-size:13px; font-weight:600;
+            letter-spacing:0.5px; text-decoration:none; color:var(--text-dim);
+            border:1px solid var(--border); background:var(--bg-surface); transition:all .2s;
+        }
+        .toc a:hover { color:#fff; border-color:var(--accent); background:rgba(var(--accent-rgb),0.12); }
+
+        section.block { scroll-margin-top:90px; margin-bottom:44px; }
+        .block-intro { font-size:14.5px; color:var(--text-dim); line-height:1.65; max-width:820px; margin-bottom:22px; }
+        .block-intro strong { color:var(--text); }
+
+        /* Befehls-Liste */
+        .cmd-liste { display:flex; flex-direction:column; gap:0; }
+        .cmd {
+            display:grid; grid-template-columns:210px 1fr; gap:18px; align-items:start;
+            padding:16px 4px; border-bottom:1px solid var(--hairline);
+        }
+        .cmd:last-child { border-bottom:none; }
+        .cmd code {
+            font-family:var(--mono); font-size:14px; font-weight:700; color:var(--accent);
+            background:rgba(var(--accent-rgb),0.10); border:1px solid rgba(var(--accent-rgb),0.28);
+            border-radius:8px; padding:6px 12px; display:inline-block; white-space:nowrap;
+        }
+        .cmd .beschr { font-size:14px; color:var(--text); line-height:1.55; }
+        .cmd .beschr .zusatz { color:var(--text-dim); font-size:13px; display:block; margin-top:3px; }
+        @media(max-width:640px){ .cmd{ grid-template-columns:1fr; gap:8px; } }
+
+        /* Ablauf-Schritte (nummeriert) */
+        .schritte { counter-reset:schritt; display:flex; flex-direction:column; gap:14px; }
+        .schritt {
+            position:relative; padding:16px 18px 16px 60px;
+            background:var(--bg-surface); border:1px solid var(--border2); border-radius:12px;
+            font-size:14px; color:var(--text); line-height:1.55;
+        }
+        .schritt::before {
+            counter-increment:schritt; content:counter(schritt);
+            position:absolute; left:16px; top:14px; width:30px; height:30px; border-radius:50%;
+            background:var(--accent); color:#08151f; font-family:var(--mono); font-weight:700; font-size:15px;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .schritt code {
+            font-family:var(--mono); color:var(--accent2); background:rgba(255,255,255,0.05);
+            border-radius:5px; padding:1px 7px; font-size:13px;
+        }
+        .schritt strong { color:#fff; }
+
+        /* Punkte-Tabelle */
+        .punkte-tabelle td:first-child { font-family:var(--mono); color:var(--text-dim); }
+        .punkte-tabelle td:last-child { font-family:var(--mono); color:var(--accent3); font-weight:700; text-align:right; }
+        .punkte-tabelle tr:first-child td:last-child { color:var(--gold); }
+
+        /* Abzeichen-Grid */
+        .abz-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
+        .abz {
+            display:flex; gap:12px; align-items:flex-start;
+            background:var(--bg-surface); border:1px solid var(--border2); border-radius:12px; padding:14px;
+        }
+        .abz .icon { font-size:26px; line-height:1; flex:none; }
+        .abz .txt h4 { font-family:var(--font-label); font-size:13px; font-weight:700; color:#fff; letter-spacing:0.5px; margin-bottom:3px; }
+        .abz .txt p { font-size:12px; color:var(--text-dim); line-height:1.45; }
+        .abz.geheim { border-style:dashed; border-color:rgba(var(--accent3-rgb),0.4); background:rgba(var(--accent3-rgb),0.05); }
+        .abz.geheim .txt h4 { color:var(--accent3); }
+
+        /* Seiten-Erklärung (Website) */
+        .seiten-liste { display:flex; flex-direction:column; gap:12px; }
+        .seite-row {
+            display:grid; grid-template-columns:170px 1fr; gap:18px; align-items:start;
+            padding:14px 16px; background:var(--bg-surface); border:1px solid var(--border); border-radius:12px;
+        }
+        .seite-row .seite-name { font-family:var(--font-label); font-weight:700; color:#fff; font-size:14px; }
+        .seite-row .seite-name a { color:var(--accent); text-decoration:none; }
+        .seite-row .seite-name a:hover { text-decoration:underline; }
+        .seite-row .seite-desc { font-size:13.5px; color:var(--text-dim); line-height:1.55; }
+        @media(max-width:640px){ .seite-row{ grid-template-columns:1fr; gap:6px; } }
+
+        /* Hinweis-Kasten */
+        .kasten {
+            background:rgba(var(--accent-rgb),0.07); border:1px solid rgba(var(--accent-rgb),0.30);
+            border-radius:12px; padding:16px 18px; font-size:14px; color:var(--text); line-height:1.6; margin-top:8px;
+        }
+        .kasten.gold { background:rgba(var(--accent3-rgb),0.07); border-color:rgba(var(--accent3-rgb),0.35); }
+        .kasten strong { color:#fff; }
+
+        .fuss { text-align:center; color:var(--text-faint); font-size:12px; padding:30px 0 10px; border-top:1px solid var(--hairline); margin-top:20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <img class="logo-icon" src="assets/logo.svg" alt="Server-Logo">
+            <div class="header-text">
+                <h1>TRACKMANIA<span class="brand-accent">SERVER</span></h1>
+                <div class="header-sub">Trackmania Competition Server</div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a class="nav-item" href="index.html"><span class="live-dot"></span>Live</a>
+            <a class="nav-item" href="spielerstats.html">📊 Spielerstats</a>
+            <a class="nav-item" href="monatsarchiv.html">📅 Monatsarchiv</a>
+            <a class="nav-item" href="jahresarchiv.html">🗓️ Jahresarchiv</a>
+            <a class="nav-item" href="halloffame.html">👑 Hall of Fame</a>
+            <a class="nav-item" href="voting.html">🗳️ Voting</a>
+            <a class="nav-item" href="analysen.html">📊 Analysen</a>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="hero">
+        <div class="kicker">Spieler-Handout · Saison 2026/27</div>
+        <h1>So läuft unser Server — alles auf einen Blick</h1>
+        <p>Unser Trackmania-2020-Server läuft privat für unsere Truppe (erreichbar über unser NeoRouter-VPN). Gefahren wird in <strong>Monatswertungen</strong>: Jeden Monat gibt es einen frischen Streckensatz, Punkte für jede Zeit, am Monatsende einen Sieger — und alles Wichtige landet automatisch in unserer Telegram-Gruppe und auf der Website.</p>
+        <p>Dieses Handout erklärt <strong>jede Funktion und jeden Bedienablauf</strong>: Chat-Befehle im Spiel, das Punkte-System, Karma &amp; Map-Voting, die 27 Abzeichen, den Telegram-Bot, die KI-Analysen und alle Website-Seiten.</p>
+    </div>
+
+    <nav class="toc">
+        <a href="#spiel">🏁 Im Spiel</a>
+        <a href="#punkte">🏆 Punkte-System</a>
+        <a href="#karma">🌶️ Karma &amp; Voting</a>
+        <a href="#abzeichen">🏅 Abzeichen</a>
+        <a href="#telegram">🤖 Telegram-Bot</a>
+        <a href="#analysen">📈 KI-Analysen</a>
+        <a href="#website">📊 Website</a>
+        <a href="#rhythmus">📅 Monatsrhythmus</a>
+    </nav>
+
+    <!-- STAT-KARTEN -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Website-Seiten</h3>
+            <div class="value">8</div>
+            <div class="sub">Live, Stats, Archive, HoF, Voting, Analysen</div>
+        </div>
+        <div class="stat-card blue">
+            <h3>Telegram-Befehle</h3>
+            <div class="value">10</div>
+            <div class="sub">Status, Stats, Verknüpfung &amp; mehr</div>
+        </div>
+        <div class="stat-card">
+            <h3>Abzeichen</h3>
+            <div class="value" style="color:var(--gold)">27</div>
+            <div class="sub">7 davon geheim</div>
+        </div>
+        <div class="stat-card green">
+            <h3>Punkte für Platz 1</h3>
+            <div class="value">1000</div>
+            <div class="sub">pro Strecke &amp; Monat</div>
+        </div>
+    </div>
+
+    <!-- ── IM SPIEL ────────────────────────────────────────── -->
+    <section class="block" id="spiel">
+        <div class="section-title">🏁 Im Spiel — Chat-Befehle</div>
+        <p class="block-intro">Alle Befehle tippst du direkt in den <strong>Spiel-Chat</strong> (Enter drücken, Befehl eingeben, Enter). Ganz normale Nachrichten ohne <code>/</code> sind kein Befehl — sie werden über die <strong>Chat-Brücke</strong> automatisch in unsere Telegram-Gruppe gespiegelt (und umgekehrt: was in Telegram geschrieben wird, erscheint im Spiel-Chat).</p>
+        <div class="cmd-liste">
+            <div class="cmd">
+                <code>/karma &lt;1-10&gt;</code>
+                <div class="beschr">Bewertet die gerade laufende Strecke von 1 (mies) bis 10 (top).
+                    <span class="zusatz">Deine Stimme fließt in die Auswahl der Strecken für den nächsten Monat ein (siehe Karma &amp; Voting).</span></div>
+            </div>
+            <div class="cmd">
+                <code>/karma</code>
+                <div class="beschr">Ohne Zahl: zeigt den aktuellen Durchschnitt und die Anzahl der Stimmen für die laufende Strecke.
+                    <span class="zusatz">Am Rundenende wird der Schnitt außerdem automatisch im Chat angesagt.</span></div>
+            </div>
+            <div class="cmd">
+                <code>/abzeichen</code>
+                <div class="beschr">Zeigt, wie viele Abzeichen du hast und welche du zuletzt freigeschaltet hast.</div>
+            </div>
+            <div class="cmd">
+                <code>/rekorde</code>
+                <div class="beschr">Listet die lokalen Rekorde (Bestzeiten) auf der aktuellen Strecke.</div>
+            </div>
+            <div class="cmd">
+                <code>/hilfe</code>
+                <div class="beschr">Zeigt die im Spiel verfügbaren Befehle.</div>
+            </div>
+        </div>
+        <div class="kasten">📋 Oben links läuft während der Fahrt automatisch eine kleine <strong>Anzeigetafel mit den Top 10</strong> der aktuellen Strecke mit — reine Anzeige, keine Bedienung nötig.</div>
+    </section>
+
+    <!-- ── PUNKTE-SYSTEM ───────────────────────────────────── -->
+    <section class="block" id="punkte">
+        <div class="section-title">🏆 Das Punkte-System</div>
+        <p class="block-intro">Für <strong>jede Strecke</strong> des Monats zählt deine beste Zeit. Aus deiner Platzierung auf der jeweiligen Strecke ergeben sich Punkte. Die Summe über alle Strecken ist dein <strong>Monatsstand</strong> — die Tabelle dazu siehst du live auf der Startseite und im Monatsarchiv.</p>
+        <div class="panel" style="max-width:520px">
+            <div class="panel-header"><h2>Punkte je Platzierung</h2></div>
+            <div class="table-container">
+                <table class="punkte-tabelle">
+                    <thead><tr><th>Platz auf der Strecke</th><th>Punkte</th></tr></thead>
+                    <tbody>
+                        <tr><td>1.</td><td>1000</td></tr>
+                        <tr><td>2.</td><td>800</td></tr>
+                        <tr><td>3.</td><td>600</td></tr>
+                        <tr><td>4. – 5.</td><td>500</td></tr>
+                        <tr><td>6. – 10.</td><td>400</td></tr>
+                        <tr><td>11. – 20.</td><td>300</td></tr>
+                        <tr><td>21. – 50.</td><td>200</td></tr>
+                        <tr><td>51. – 100.</td><td>100</td></tr>
+                        <tr><td>101. – 200.</td><td>50</td></tr>
+                        <tr><td>ab 201.</td><td>mind. 10</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="kasten gold">💡 <strong>Kurz gesagt:</strong> Es lohnt sich, auf möglichst <strong>vielen Strecken</strong> eine gute Zeit zu fahren — nicht nur auf einer. Platz 1 bringt 1000, aber schon Top 10 auf allen Strecken summiert sich schnell.</div>
+    </section>
+
+    <!-- ── KARMA & VOTING ──────────────────────────────────── -->
+    <section class="block" id="karma">
+        <div class="section-title">🌶️ Karma &amp; Map-Voting</div>
+        <p class="block-intro">Ihr bestimmt selbst mit, welche Strecken gefahren werden. Das läuft in zwei Stufen: <strong>Karma</strong> sammelt euren Geschmack, das <strong>Voting</strong> am Monatsende entscheidet über die neuen Strecken.</p>
+        <div class="schritte">
+            <div class="schritt"><strong>Bewerten:</strong> Fahrt ihr eine Strecke, gebt ihr mit <code>/karma 1-10</code> eure Meinung ab. Das geht das ganze Monat über, jederzeit.</div>
+            <div class="schritt"><strong>Geschmacksprofil:</strong> Aus den beliebten Strecken (Schnitt ≥ 6, mind. 2 Stimmen) errechnet das System, welche <strong>Autoren, Umgebungen und Stimmungen</strong> euch gefallen.</div>
+            <div class="schritt"><strong>Kandidaten:</strong> Für den nächsten Monat werden dazu passende Strecken vorgeschlagen — ähnliche zu euren Favoriten sind mit „⭐ ähnlich zu euren Favoriten" markiert.</div>
+            <div class="schritt"><strong>Abstimmung:</strong> In der <strong>letzten Monatswoche</strong> startet der Telegram-Bot eine Umfrage (Poll) mit den Kandidaten samt Kurzbeschreibung. Ihr tippt eure Favoriten an.</div>
+            <div class="schritt"><strong>Übernahme:</strong> Beim Monatswechsel werden die Gewinner-Strecken automatisch auf den Server geladen. Fertig — neuer Monat, neue Strecken.</div>
+        </div>
+        <div class="kasten">🗳️ Den aktuellen Stand (laufende Abstimmung mit Live-Stimmen oder die Gewinner) und die Karma-Übersicht aller Monats-Strecken findest du jederzeit auf der <a href="voting.html" style="color:var(--accent)">Voting-Seite</a>.</div>
+    </section>
+
+    <!-- ── ABZEICHEN ───────────────────────────────────────── -->
+    <section class="block" id="abzeichen">
+        <div class="section-title">🏅 Abzeichen — 27 Errungenschaften</div>
+        <p class="block-intro">Für Meilensteine und besondere Leistungen gibt es Abzeichen. Sie erscheinen auf deinem <strong>Spielerprofil</strong> und werden im Gaming-Log der Startseite angekündigt, sobald du eins freischaltest. <strong>Sieben Abzeichen sind geheim</strong> — was man dafür tun muss, verraten wir hier absichtlich nicht. 😉</p>
+        <div class="abz-grid">
+            <div class="abz"><div class="icon">🏆</div><div class="txt"><h4>Monatsmeister</h4><p>Eine Monatswertung gewinnen.</p></div></div>
+            <div class="abz"><div class="icon">🎩</div><div class="txt"><h4>Hattrick</h4><p>Drei Monatswertungen in Folge gewinnen.</p></div></div>
+            <div class="abz"><div class="icon">👑</div><div class="txt"><h4>Jahresmeister</h4><p>Eine Jahreswertung gewinnen.</p></div></div>
+            <div class="abz"><div class="icon">💯</div><div class="txt"><h4>Durchmarsch</h4><p>Am Monatsende auf allen Strecken die Bestzeit halten.</p></div></div>
+            <div class="abz"><div class="icon">🥉</div><div class="txt"><h4>Podestfahrer</h4><p>Einen Monat unter den Top 3 der Punktewertung beenden.</p></div></div>
+            <div class="abz"><div class="icon">🥇</div><div class="txt"><h4>Platzhirsch</h4><p>Die aktuelle Bestzeit auf mindestens einer Strecke halten.</p></div></div>
+            <div class="abz"><div class="icon">⏱️</div><div class="txt"><h4>Marathonfahrer</h4><p>Über 3 Stunden am Stück auf dem Server verbringen.</p></div></div>
+            <div class="abz"><div class="icon">🏁</div><div class="txt"><h4>Serien-Finisher</h4><p>100 Zieldurchfahrten erreichen.</p></div></div>
+            <div class="abz"><div class="icon">🔥</div><div class="txt"><h4>Ziellinien-Legende</h4><p>1.000 Zieldurchfahrten erreichen.</p></div></div>
+            <div class="abz"><div class="icon">🚩</div><div class="txt"><h4>Checkpoint-Sammler</h4><p>10.000 Checkpoints durchfahren.</p></div></div>
+            <div class="abz"><div class="icon">🕐</div><div class="txt"><h4>Rund um die Uhr</h4><p>24 Stunden Gesamtspielzeit erreichen.</p></div></div>
+            <div class="abz"><div class="icon">⏳</div><div class="txt"><h4>Gehört zum Inventar</h4><p>100 Stunden Gesamtspielzeit erreichen.</p></div></div>
+            <div class="abz"><div class="icon">🍻</div><div class="txt"><h4>Stammgast</h4><p>100 Server-Verbindungen erreichen.</p></div></div>
+            <div class="abz"><div class="icon">⭐</div><div class="txt"><h4>Streckenkritiker</h4><p>10 Strecken mit /karma bewerten.</p></div></div>
+            <div class="abz"><div class="icon">🍂</div><div class="txt"><h4>Vier Jahreszeiten</h4><p>In jeder Jahreszeit eines Kalenderjahres mindestens einen Monat aktiv gewesen sein.</p></div></div>
+            <div class="abz"><div class="icon">📅</div><div class="txt"><h4>Jahresfahrer</h4><p>In allen 12 Monaten eines Kalenderjahres aktiv gewesen sein.</p></div></div>
+            <div class="abz"><div class="icon">👋</div><div class="txt"><h4>Willkommenskomitee</h4><p>Drei neuen Spielern bei ihrem allerersten Besuch online begegnet.</p></div></div>
+            <div class="abz"><div class="icon">↩️</div><div class="txt"><h4>Rückkehrer</h4><p>Nach mindestens 45 Tagen Pause auf den Server zurückgekehrt.</p></div></div>
+            <div class="abz"><div class="icon">🔥</div><div class="txt"><h4>Dauerbrenner</h4><p>6 Monate in Folge aktiv gewesen.</p></div></div>
+            <div class="abz"><div class="icon">⚖️</div><div class="txt"><h4>Fairer Wertrichter</h4><p>Alle Strecken im aktuellen Pool mit /karma bewertet.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+            <div class="abz geheim"><div class="icon">🔒</div><div class="txt"><h4>Geheimes Abzeichen</h4><p>Bedingung unbekannt — finde es selbst heraus.</p></div></div>
+        </div>
+    </section>
+
+    <!-- ── TELEGRAM ────────────────────────────────────────── -->
+    <section class="block" id="telegram">
+        <div class="section-title">🤖 Der Telegram-Bot</div>
+        <p class="block-intro">In unserer Telegram-Gruppe meldet der Bot automatisch Rekorde, Tabellenänderungen, Votings, einen Tagesreport und den Wochenrückblick. Du kannst ihm auch <strong>Befehle</strong> schicken — in der Gruppe oder privat (privat kommt die Antwort privat). Alle Befehle beginnen mit <code>/</code>.</p>
+        <div class="cmd-liste">
+            <div class="cmd"><code>/status</code><div class="beschr">Server-Status: wer online ist und welche Strecke läuft.</div></div>
+            <div class="cmd"><code>/players</code><div class="beschr">Liste der aktuell online Spieler.</div></div>
+            <div class="cmd"><code>/map</code><div class="beschr">Infos zur aktuellen Strecke (Name, Autor).</div></div>
+            <div class="cmd"><code>/records</code><div class="beschr">Die Top-15-Bestzeiten der aktuellen Strecke.</div></div>
+            <div class="cmd"><code>/monat</code><div class="beschr">Aktuelle Monats-Rangliste (Top 15).</div></div>
+            <div class="cmd"><code>/link</code><div class="beschr">Verknüpft deinen Telegram-Account mit deinem Spieler-Login (Ablauf siehe unten). Voraussetzung für die persönlichen Befehle.</div></div>
+            <div class="cmd"><code>/mystats</code><div class="beschr">Deine Punkte, dein Rang und der Vergleich zum Vormonat. <span class="zusatz">Nur nach /link.</span></div></div>
+            <div class="cmd"><code>/gap</code><div class="beschr">Dein Rückstand auf Platz 1 — pro Strecke aufgeschlüsselt. <span class="zusatz">Nur nach /link.</span></div></div>
+            <div class="cmd"><code>/abo</code><div class="beschr">Private Benachrichtigungen ein-/ausschalten. <span class="zusatz">Nur nach /link.</span></div></div>
+            <div class="cmd"><code>/help</code><div class="beschr">Zeigt diese Befehlsliste im Chat.</div></div>
+        </div>
+
+        <div class="abschnitt-titel" style="margin-top:32px"><h2>🔗 Account verknüpfen (/link)</h2><span class="sub">einmalig, schaltet die persönlichen Befehle frei</span></div>
+        <div class="schritte">
+            <div class="schritt">Starte in Telegram einen <strong>privaten Chat</strong> mit dem Bot (nach dem Bot-Namen suchen, „Start" drücken).</div>
+            <div class="schritt">Schreibe <code>/link</code>. Der Bot schickt dir <strong>privat</strong> einen Code (15 Minuten gültig). <em>Der Code wird nie in die Gruppe gepostet.</em></div>
+            <div class="schritt">Geh ins <strong>Spiel</strong> und tippe im Chat <code>/link &lt;dein-code&gt;</code>. Fertig — dein Telegram-Account ist jetzt mit deinem Login verbunden.</div>
+        </div>
+
+        <div class="kasten" style="margin-top:18px">📬 <strong>Nach jeder Strecke</strong> bekommen verknüpfte Spieler eine private Zusammenfassung (deine Bilanz, wer dich überholt hat, verlorene Bestzeiten, neue Abzeichen). Mit <code>/abo &lt;kategorie&gt; an|aus</code> steuerst du, was davon du erhalten willst — Kategorien: <strong>digest</strong>, <strong>ueberholt</strong>, <strong>rekordverlust</strong>, <strong>errungenschaften</strong>. In der <strong>letzten Monatswoche</strong> (Endspurt) verstärkt der Bot die Gruppen-Updates, damit auch Unverknüpfte den Schlussspurt mitbekommen.</div>
+    </section>
+
+    <!-- ── KI-ANALYSEN ─────────────────────────────────────── -->
+    <section class="block" id="analysen">
+        <div class="section-title">📈 KI-Analysen</div>
+        <p class="block-intro">Auf der Seite <a href="analysen.html" style="color:var(--accent)">Analysen</a> wertet das System eure Fahrdaten automatisch aus: Formkurven, Auf- und Absteiger, Rivalitäten zwischen Spielern, Auffälligkeiten und der Zusammenhang zwischen Karma-Bewertung und tatsächlicher Leistung. Die Zahlen werden deterministisch berechnet, eine KI (Claude) formuliert dazu kurze, lesbare Einordnungen — klar als KI-Text gekennzeichnet.</p>
+        <div class="kasten">🤖 Einmal wöchentlich (Sonntagabend) postet der Telegram-Bot zusätzlich einen <strong>Analyse-Kompaktbericht</strong> in die Gruppe.</div>
+    </section>
+
+    <!-- ── WEBSITE ─────────────────────────────────────────── -->
+    <section class="block" id="website">
+        <div class="section-title">📊 Die Website</div>
+        <p class="block-intro">Alles Statistische läuft über die Website — von der Live-Ansicht während des Rennens bis zu den Archiven vergangener Monate und Jahre.</p>
+        <div class="seiten-liste">
+            <div class="seite-row"><div class="seite-name"><a href="index.html">Live</a></div><div class="seite-desc">Die Startseite: wer gerade online ist, die Strecken-Auswahl, die Formel-1-artige Zeiten-Ansicht mit Abstandsbalken, die Monats-Punktetabelle, Server-Status und das laufende Gaming-Log. Aktualisiert sich automatisch.</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="spielerstats.html">Spielerstats</a></div><div class="seite-desc">Übersicht aller Spieler mit Suche, Charts und sortierbarer Tabelle. Von hier gelangst du per Klick auf jedes Spielerprofil.</div></div>
+            <div class="seite-row"><div class="seite-name">Spielerprofil</div><div class="seite-desc">Die Detailseite eines Spielers (erreichbar über Spielerstats oder die Ranglisten): persönliche Statistiken, Verlauf und das Abzeichen-Grid unter dem Namen.</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="monatsarchiv.html">Monatsarchiv</a></div><div class="seite-desc">Jeder abgeschlossene Monat als verlustfreier Schnappschuss: Endstand der Punktetabelle, Strecken und Rekorde. Jahr und Monat auswählbar.</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="jahresarchiv.html">Jahresarchiv</a></div><div class="seite-desc">Die Jahreswertungen im Überblick — wer über ein ganzes Jahr vorn lag.</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="halloffame.html">Hall of Fame</a></div><div class="seite-desc">Die ewige Bestenliste über alle Zeiten hinweg (aktuelle + archivierte Rekorde zusammengerechnet).</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="voting.html">Voting</a></div><div class="seite-desc">Karma-Erklärung, aktueller Abstimmungsstatus (laufende Kandidaten mit Live-Stimmen oder Gewinner) und die Karma-Übersicht der Monats-Strecken.</div></div>
+            <div class="seite-row"><div class="seite-name"><a href="analysen.html">Analysen</a></div><div class="seite-desc">Formkurven, Auf-/Absteiger, Rivalitäten und Auffälligkeiten mit KI-kommentierten Einordnungen (siehe KI-Analysen oben).</div></div>
+        </div>
+    </section>
+
+    <!-- ── MONATSRHYTHMUS ──────────────────────────────────── -->
+    <section class="block" id="rhythmus">
+        <div class="section-title">📅 Monats- &amp; Jahresrhythmus</div>
+        <p class="block-intro">Am <strong>Monatsende</strong> passiert automatisch alles auf einmal:</p>
+        <div class="schritte">
+            <div class="schritt">Der Endstand (Punktetabelle, Strecken, Rekorde) wird ins <strong>Monatsarchiv</strong> gesichert und die Rangliste eingefroren.</div>
+            <div class="schritt">Die aktuellen Rekorde werden geleert — der <strong>neue Monat startet bei null</strong> (deine Profil- und Lifetime-Stats bleiben natürlich erhalten).</div>
+            <div class="schritt">Die im Voting gewählten <strong>neuen Strecken</strong> werden auf den Server geladen.</div>
+            <div class="schritt">Der Telegram-Bot verkündet den Monatssieger und den Neustart.</div>
+        </div>
+        <div class="kasten gold" style="margin-top:18px">👑 <strong>Karma bleibt erhalten:</strong> Streckenbewertungen hängen an der Strecke selbst und überdauern Monatswechsel — dein Geschmacksprofil wird also mit der Zeit immer treffsicherer. Am <strong>Jahresende</strong> kommt zusätzlich die Jahreswertung ins Jahresarchiv.</div>
+    </section>
+
+    <div class="kasten">☕ <strong>Serverkosten:</strong> Der Server läuft privat und wird aus eigener Tasche finanziert. Über den Spenden-Button unten rechts (auf jeder Seite) kannst du freiwillig etwas beisteuern — muss aber nicht, der Server läuft so oder so weiter. 🙂</div>
+
+    <div class="fuss">Trackmania Community Server — Fragen? Einfach in der Gruppe melden. Viel Erfolg &amp; gute Zeiten! 🏁</div>
+
+</div>
+
+<script src="assets/app.js?v=9"></script>
+</body>
+</html>

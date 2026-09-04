@@ -1,0 +1,19 @@
+{
+  "name": "trackmania-scripts",
+  "version": "1.0.0",
+  "description": "Automatisierungs-Skripte für das Trackmania-System (Test-DB, Migration, Monatswechsel, Backup, Watchdog)",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "refresh-testdb": "node refresh-testdb.js",
+    "backup-db": "node backup-db.js"
+  },
+  "dependencies": {
+    "bson": "^7.0.0",
+    "gbxremote": "^0.2.1",
+    "mongodb": "^7.5.0"
+  }
+}

@@ -1,0 +1,266 @@
+/* theme.css -- Design-System der Trackmania-Community-Server-Website.
+   Farb-/Typografie-Tokens als CSS-Variablen (siehe :root unten), auf die
+   bestehenden Klassennamen/Selektoren der Website gemapped. Zum Anpassen an
+   dein eigenes Branding einfach die Variablenwerte in :root aendern. */
+
+:root {
+    --bg-deep:     #16211d;   /* Carbon - Seitenhintergrund */
+    --bg-card:     #1b2824;   /* Panel - Karten */
+    --bg-card-deep:#141e1a;   /* grosse Container (Dashboard-/Tabellen-Shell) */
+    --bg-surface:  #213029;   /* Zeilen, Stat-Kacheln, Inputs */
+
+    --accent:      #33a6f2;   /* primaerer Akzent (Blau) */
+    --accent-rgb:  51,166,242;
+    --accent2:     #4db4f5;   /* helleres Blau - Datenhervorhebung (Zeiten/Charts) */
+    --accent3:     #e0b24a;   /* Gold - Siege/Ranked */
+    --accent3-rgb: 224,178,74;
+    --accent4:     #6fae72;   /* Gruen - Online/Erfolg */
+    --accent4-rgb: 111,174,114;
+    --error:       #c96b5e;   /* warmer Rotton (Expert-Schwierigkeitsfarbe im Designset) fuer Warn-/Fehlerzustaende */
+    --error-rgb:   201,107,94;
+
+    --border:      #2c3d36;
+    --border2:     #3c534a;
+    --hairline:    #1e2b27;
+
+    --text:        #dce6e2;
+    --text-dim:    #8ea39c;
+    --text-faint:  #5b6b64;
+
+    --font:         'Barlow', sans-serif;
+    --font-display: 'Chakra Petch', sans-serif;
+    --font-label:   'Barlow Semi Condensed', sans-serif;
+    --mono:         'Chakra Petch', sans-serif; /* Name beibehalten (Kompatibilitaet), jetzt Display-Font fuer Zahlen/Zeiten */
+
+    --gold: #e0b24a; --silver:#c4ccc9; --bronze:#c08a54;
+    --gold-rgb: 224,178,74;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family: var(--font);
+    background: var(--bg-deep);
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px);
+    color: var(--text); min-height:100vh; overflow-x:hidden;
+}
+
+/* HEADER */
+.header {
+    background: var(--bg-card);
+    padding:10px 24px; border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:100;
+}
+.header-content { max-width:1500px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+.header-left { display:flex; align-items:center; gap:14px; }
+.logo-icon { width:36px; height:36px; object-fit:contain; display:block; flex:none; }
+.header-text h1 {
+    font-family:var(--font-display); font-size:17px; font-weight:700; letter-spacing:1px; color:#fff; line-height:1.1;
+}
+.header-text h1 .brand-accent { color:var(--accent); }
+.header-sub { font-family:var(--font-label); font-size:10px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--accent); margin-top:2px; }
+.status { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-dim); margin-top:2px; font-family:var(--font); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--accent4); animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+.live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent); margin-right:6px; animation:pulse 1.4s infinite; box-shadow:0 0 8px rgba(var(--accent-rgb),0.7); }
+.nav-menu { display:flex; gap:8px; flex-wrap:wrap; }
+.nav-item {
+    padding:9px 18px; border-radius:20px; font-family:var(--font-label); font-size:13px; font-weight:600;
+    text-decoration:none; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;
+    border:1px solid var(--border); background:var(--bg-surface);
+    transition:all 0.25s;
+}
+.nav-item:hover { color:#fff; border-color:var(--accent); background:rgba(var(--accent-rgb),0.12); transform:translateY(-1px); }
+.nav-item.active { color:#08151f; font-weight:700; background:var(--accent); border-color:var(--accent); box-shadow:0 0 20px rgba(var(--accent-rgb),0.4); }
+
+/* LAYOUT */
+.container { max-width:1500px; margin:0 auto; padding:32px 24px; }
+.section-title {
+    font-family:var(--font-label); font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+    color:var(--accent); margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+}
+.section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(var(--accent-rgb),0.2),transparent); }
+
+/* STAT CARDS */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:40px; }
+.stat-card {
+    background:var(--bg-card); border:1px solid var(--border); border-radius:14px;
+    padding:22px 20px; text-align:center;
+    transition:transform 0.25s,box-shadow 0.25s; position:relative; overflow:hidden;
+}
+.stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(var(--accent-rgb),0.15); }
+.stat-card h3 { font-family:var(--font-label); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px; }
+.stat-card .value { font-size:28px; font-weight:700; color:#fff; font-family:var(--mono); }
+.stat-card .sub   { font-size:11px; color:var(--text-dim); margin-top:4px; }
+.stat-card.blue .value { color:var(--accent2); }
+.stat-card.green .value { color:var(--accent4); }
+
+/* PANEL / LEADERBOARD */
+.panel, .leaderboard {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:16px; padding:28px; margin-bottom:28px;
+}
+.panel-header, .leaderboard-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; gap:12px; flex-wrap:wrap; }
+.panel-header h2, .leaderboard h2 { font-family:var(--font-display); font-size:18px; font-weight:700; color:#fff; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+.last-updated { font-size:12px; color:var(--text-dim); font-family:var(--mono); }
+
+select.month-select {
+    background:var(--bg-surface); color:var(--text); border:1px solid var(--border2);
+    border-radius:8px; padding:8px 14px; font-family:var(--font); font-size:13px;
+}
+
+/* TABLE */
+.table-container { overflow-x:auto; border-radius:10px; }
+table { width:100%; border-collapse:collapse; }
+th {
+    background:var(--bg-card-deep); padding:14px 16px; text-align:left;
+    font-family:var(--font-label); font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+    color:var(--text-faint); border-bottom:1px solid var(--border); white-space:nowrap;
+}
+td { padding:13px 16px; font-size:14px; border-bottom:1px solid var(--hairline); }
+tr:hover td { background:rgba(var(--accent-rgb),0.06); }
+
+.rank { font-family:var(--mono); font-weight:700; font-size:17px; }
+.rank.gold   { color:var(--gold); }
+.rank.silver { color:var(--silver); }
+.rank.bronze { color:var(--bronze); }
+.player-name { font-weight:700; color:#fff; }
+.player-name a { color:inherit; text-decoration:none; border-bottom:1px dotted var(--text-dim); }
+.player-name a:hover { color:var(--accent); border-color:var(--accent); }
+.points  { font-family:var(--mono); color:#fff; font-weight:700; font-size:15px; }
+.time-cell { font-family:var(--mono); color:var(--accent); font-size:13px; }
+.wins-cell { font-family:var(--mono); color:var(--accent3); }
+
+.loading, .error, .no-records { text-align:center; padding:40px; font-size:15px; }
+.loading { color:var(--accent); }
+.error   { color:var(--error); }
+.no-records { color:var(--text-dim); font-style:italic; }
+
+/* CHARTS (SVG, siehe assets/app.js: zeichneBalken/zeichneHorizontalBalken/zeichneRangVerlauf/zeichneMehrfachVerlauf) */
+.chart-wrap { overflow-x:auto; }
+.chart-gitter { stroke:rgba(255,255,255,0.06); stroke-width:1; }
+.chart-achse { stroke:rgba(255,255,255,0.2); stroke-width:1; }
+.chart-label { fill:var(--text-dim); font-size:11px; font-family:var(--mono); }
+.chart-wert { fill:#fff; font-size:11px; font-weight:700; font-family:var(--mono); }
+
+/* KLEINE STAT-CARDS (kompakter als .stat-card, fuer dichte Uebersichten) */
+.abschnitt-titel { display:flex; align-items:center; gap:10px; margin:36px 0 16px; }
+.abschnitt-titel h2 { font-family:var(--font-display); font-size:16px; font-weight:700; color:#fff; letter-spacing:0.5px; }
+.abschnitt-titel .sub { font-size:12px; color:var(--text-dim); }
+.abschnitt-titel:first-of-type { margin-top:8px; }
+
+.kleine-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px; }
+.kleine-stat { background:var(--bg-surface); border:1px solid var(--border2); border-radius:12px; padding:14px 16px; text-align:center; }
+.kleine-stat h4 { font-family:var(--font-label); font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
+.kleine-stat .wert { font-size:20px; font-weight:700; color:#fff; font-family:var(--mono); }
+.kleine-stat.accent .wert { color:var(--accent); }
+.kleine-stat.blue .wert { color:var(--accent2); }
+.kleine-stat.green .wert { color:var(--accent4); }
+.kleine-stat.gold .wert { color:var(--gold); }
+
+/* SORTIER-BUTTONS (Tabellen mit umschaltbarer Sortierung) */
+.sort-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+.sort-btn {
+    padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700;
+    font-family:var(--font-label); letter-spacing:1px; text-transform:uppercase;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg-surface); color:var(--text-dim);
+    transition:all 0.2s;
+}
+.sort-btn:hover { color:#fff; border-color:var(--accent); }
+.sort-btn.active { background:var(--accent); border-color:var(--accent); color:#08151f; box-shadow:0 0 12px rgba(var(--accent-rgb),0.35); }
+
+/* STATS-ANSICHT (gemeinsame Bausteine von spielerstats/monatsarchiv/jahresarchiv/halloffame,
+   gerendert von assets/statsview.js) */
+.suche-zeile { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+.suche-zeile input {
+    flex:1; min-width:220px; max-width:340px; padding:10px 16px; border-radius:20px;
+    background:var(--bg-card); border:1px solid var(--border); color:var(--text);
+    font-family:var(--font); font-size:14px;
+}
+.suche-zeile input:focus { outline:none; border-color:var(--accent); }
+
+.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
+.charts-grid .panel { margin-bottom:0; min-width:0; }
+@media(max-width:900px) { .charts-grid { grid-template-columns:1fr; } }
+
+th.sortierbar { cursor:pointer; user-select:none; }
+th.sortierbar:hover { color:#fff; }
+th.sortierbar .pfeil { opacity:0.4; margin-left:4px; }
+th.sortierbar.aktiv .pfeil { opacity:1; color:var(--accent); }
+th.sortierbar.deaktiviert { cursor:default; color:var(--text-faint); }
+th.sortierbar.deaktiviert:hover { color:var(--text-faint); }
+th.sortierbar.deaktiviert .pfeil { display:none; }
+
+/* Kompakte Strecken-Checkliste (Streckenmatrix) */
+.checkliste-wrap { overflow-x:auto; }
+table.checkliste { width:100%; border-collapse:collapse; font-size:12px; }
+table.checkliste th, table.checkliste td { padding:4px 8px; text-align:center; border-bottom:1px solid var(--border); white-space:nowrap; }
+table.checkliste th.map-spalte { font-size:11px; color:var(--text-dim); max-width:90px; overflow:hidden; text-overflow:ellipsis; }
+table.checkliste td.spieler-spalte, table.checkliste th.spieler-spalte { text-align:left; }
+table.checkliste td.spieler-spalte a { font-size:13px; }
+.haken-ja { color:var(--accent4); font-weight:700; }
+.haken-nein { color:var(--text-dim); opacity:0.3; }
+.fortschritt-zelle { font-family:var(--mono); color:var(--text-dim); }
+
+/* ZEITLEISTE (Archiv-Seiten: Jahr waehlen, dann max. 12 Monats-Chips) */
+.zeitleiste { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:10px; }
+.zeitleiste-chip {
+    flex:0 0 auto; white-space:nowrap;
+    padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700;
+    font-family:var(--font-label); letter-spacing:1px; text-transform:uppercase;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg-surface); color:var(--text-dim);
+    transition:all 0.2s;
+}
+.zeitleiste-chip:hover { color:#fff; border-color:var(--accent); }
+.zeitleiste-chip.aktiv { background:var(--accent); border-color:var(--accent); color:#08151f; box-shadow:0 0 12px rgba(var(--accent-rgb),0.35); }
+.zeitleiste-gruppen .zeitleiste-chip.aktiv { background:var(--bg-card); color:var(--accent); border-color:var(--accent); box-shadow:none; }
+
+/* HINWEIS-BANNER ("Vor den Aufzeichnungen" / Teilabdeckungs-Fussnoten) */
+.hinweis-banner {
+    display:none; background:rgba(var(--accent3-rgb),0.08); border:1px solid rgba(var(--accent3-rgb),0.35);
+    border-radius:12px; padding:12px 16px; font-size:13px; color:var(--text); margin-bottom:20px; line-height:1.5;
+}
+.hinweis-banner.sichtbar { display:block; }
+.hinweis-banner strong { color:var(--accent3); }
+
+/* Fehlende Werte ("Vor den Aufzeichnungen") gedimmt darstellen */
+.stat-card .value.wert-fehlt { font-size:12px; color:var(--text-dim); font-family:var(--font-label); letter-spacing:1px; text-transform:uppercase; padding-top:8px; }
+td.wert-fehlt { color:var(--text-faint); }
+
+@media(max-width:768px) {
+    .header-content { flex-direction:column; gap:14px; }
+    .container { padding:20px 14px; }
+    .header-text h1 { font-size:17px; }
+}
+
+/* SCHWEBE-BUTTONS (Handout + Spenden) -- dezent rechts unten auf allen Spielerseiten,
+   zentral per app.js eingefuegt (siehe dort), nicht pro Seite dupliziert. */
+.schwebe-buttons { position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:200; }
+.schwebe-btn {
+    display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:22px;
+    background:var(--bg-card); border:1px solid var(--border); color:var(--text-dim);
+    font-family:var(--font-label); font-size:12px; font-weight:600; letter-spacing:0.3px;
+    text-decoration:none; box-shadow:0 4px 16px rgba(0,0,0,0.35); opacity:0.82;
+    transition:opacity .2s, transform .2s, border-color .2s, color .2s;
+}
+.schwebe-btn:hover { opacity:1; transform:translateY(-2px); color:#fff; border-color:var(--accent); }
+.schwebe-btn .icon { font-size:15px; line-height:1; }
+.schwebe-btn.spenden:hover { border-color:var(--gold); }
+@media(max-width:640px) {
+    .schwebe-buttons { right:12px; bottom:12px; }
+    .schwebe-btn { padding:9px; font-size:0; gap:0; }
+    .schwebe-btn .icon { font-size:17px; }
+}
+
+/* WARTUNGS-BANNER -- sticky oben auf allen Seiten, nur sichtbar waehrend die
+   Monatswechsel-Automatik im Wartungsmodus ist (monatswechselAutomatik.js), zentral
+   per app.js eingefuegt/gepollt (siehe dort), nicht pro Seite dupliziert. */
+.wartungs-banner {
+    display:none; position:sticky; top:0; z-index:300; padding:10px 16px; text-align:center;
+    background:rgba(var(--error-rgb),0.16); border-bottom:1px solid rgba(var(--error-rgb),0.5);
+    color:var(--text); font-family:var(--font-label); font-size:12.5px; letter-spacing:0.2px;
+}
+.wartungs-banner.sichtbar { display:block; }
+.wartungs-banner strong { color:var(--error); }
