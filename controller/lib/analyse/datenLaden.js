@@ -1,10 +1,10 @@
-// datenLaden.js — AP15b: laedt die Rohdaten fuer kennzahlen.js aus MongoDB. Bewusst von
+// datenLaden.js — laedt die Rohdaten fuer kennzahlen.js aus MongoDB. Bewusst von
 // der reinen Berechnung getrennt (Muster wie website/api.php: DB-Zugriff hier, Logik in
 // kennzahlen.js) -- damit die Kennzahlen-Funktionen ohne DB testbar bleiben.
 //
 // Bekommt ein db-Handle uebergeben (kein eigener Connect) -- nutzbar sowohl aus einem
-// Plugin (nc.mongoDb, spaeter AP15e) als auch aus einem Skript (scripts/analyse-lauf.js,
-// spaeter AP15d), genau wie beim bestehenden Laufzeit-Einstellungen-Muster.
+// Plugin (nc.mongoDb) als auch aus einem Skript (scripts/analyse-lauf.js),
+// genau wie beim bestehenden Laufzeit-Einstellungen-Muster.
 
 /**
  * @param {import('mongodb').Db} db
@@ -26,7 +26,7 @@ export async function ladeAnalyseDaten(db) {
         // sendeWochenRueckblick() -- gibt der Aufsteiger/Absteiger-Analyse eine echte
         // Wochenbasis statt der sonst mitten im Monat unveraenderten Monatsbasis (siehe kennzahlen.js).
         db.collection('weeklySnapshots').findOne({ _id: 'aktuell' }),
-        // Fuer berechneWochenAktivitaet() (AP17-Nachtrag) -- Tagesberichte existieren nur fuer
+        // Fuer berechneWochenAktivitaet() -- Tagesberichte existieren nur fuer
         // Tage MIT Aktivitaet (siehe telegram.js sendeTagesReport), daher hier bewusst kein
         // Mindest-Ergebnis-Check noetig.
         db.collection('tagesberichte').find({ datum: { $gte: siebenTageHerStr } }).sort({ datum: 1 }).toArray(),
@@ -38,8 +38,8 @@ export async function ladeAnalyseDaten(db) {
     for (const p of archivPlayers) if (p.login) spielerNamen.set(p.login, p.name ?? p.login);
     for (const p of players) if (p.login) spielerNamen.set(p.login, p.name ?? p.login);
 
-    // firstSeen (AP15a) existiert nur auf players (archivPlayers hat kein solches Feld) --
-    // fuer Dossiers (AP15g) genutzt.
+    // firstSeen existiert nur auf players (archivPlayers hat kein solches Feld) --
+    // fuer Dossiers genutzt.
     const spielerFirstSeen = new Map();
     for (const p of players) if (p.login) spielerFirstSeen.set(p.login, p.firstSeen ?? null);
 

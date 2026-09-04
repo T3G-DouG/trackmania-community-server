@@ -1,6 +1,6 @@
 <?php
 // saison.php -- Behandlung der historischen "season:..."-Monatstoken (identische
-// Logik zu scripts/lib/saison.js). Siehe docs/SYSTEM.md, Abschnitt "Season-Sonderfall".
+// Logik zu scripts/lib/saison.js).
 
 const SAISON_MONAT = ['Winter' => '12', 'Spring' => '03', 'Summer' => '06', 'Fall' => '09'];
 const SAISON_NAME = ['Winter' => 'Winter', 'Spring' => 'Frühling', 'Summer' => 'Sommer', 'Fall' => 'Herbst'];

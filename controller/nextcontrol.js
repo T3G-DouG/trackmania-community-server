@@ -397,7 +397,7 @@ export class NextControl {
         // start actually listening
         this.client.on('callback', async (method, para) => {
             let p;
-            // AP14a (docs/CUP-PLAN.md): merkt sich, ob dieser Callback aus dem ModeScript
+            // Merkt sich, ob dieser Callback aus dem ModeScript
             // kam, damit nicht speziell behandelte Faelle (z.B. Trackmania.Scores,
             // Maniaplanet.EndRound_*) weiter unten generisch an Plugins weitergereicht
             // werden koennen, statt (wie bisher) stillschweigend zu verfallen.
@@ -542,7 +542,7 @@ export class NextControl {
             } else if (method === 'ManiaPlanet.EndMatch') {
                 p = new CallbackParams.MatchResults(para);
 
-                // reset mode settings to default -- AP14d/CUP-PLAN.md: im Cup-Modus wuerde
+                // reset mode settings to default -- im Cup-Modus wuerde
                 // das die per LoadMatchSettings gesetzten Rounds-Settings (S_PointsRepartition
                 // etc.) zwischen zwei Turnier-Phasen kurzzeitig verwerfen; die Cup-Engine laedt
                 // beim naechsten Phasenwechsel ohnehin wieder per LoadMatchSettings neu, aber
@@ -587,7 +587,7 @@ export class NextControl {
                 this.plugins.forEach(plugin => { if (typeof plugin.onIncoherence != "undefined") plugin.onIncoherence(p) });
 
             } else if (ausModeScript) {
-                // AP14a: nicht oben speziell behandelter ModeScript-Callback (z.B.
+                // Nicht oben speziell behandelter ModeScript-Callback (z.B.
                 // Trackmania.Scores, Maniaplanet.EndRound_*) -- additiv, generisch an
                 // Plugins weiterreichen. Der WayPoint-Pfad oben bleibt unveraendert der
                 // einzige Callback mit eigener, typisierter Behandlung.
@@ -625,7 +625,7 @@ export class NextControl {
     }
 
     /**
-     * Registriert einen Eintrag im grafischen ManiaLink-Hauptmenue (AP17c+, siehe
+     * Registriert einen Eintrag im grafischen ManiaLink-Hauptmenue (siehe
      * controller/plugins/menu.js + controller/lib/manialinkMenu.js). Rein deklarativ --
      * der eigentliche Klick wird wie jede ManiaLink-Aktion ueber onManialinkPageAnswer
      * an alle Plugins verteilt, das Plugin muss die Aktion selbst dort behandeln.

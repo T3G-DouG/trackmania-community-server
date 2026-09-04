@@ -1,4 +1,4 @@
-// automatikTakt.js — AP15e (+ AP17-Nachtrag): Ablaufsteuerung fuer die zwei automatischen
+// automatikTakt.js — Ablaufsteuerung fuer die zwei automatischen
 // Analyse-Laeufe -- woechentlich (nur das Wochengeschehen) und monatlich (der historische
 // Rueckblick, siehe kennzahlen.js). Pure Funktionen (kein nextcontrol-Import, Muster wie
 // kennzahlen.js/berichtLauf.js) -- direkt aus Testskripten aufrufbar, ohne den Controller/
@@ -40,7 +40,7 @@ const MONATS_LAUF_UHRZEIT = '09:00';
  * Uhr bis Tagesende. Bewusst ein ganztaegiges Fenster (nicht nur eine Minute) -- der
  * Stunden-Tick im Plugin prueft nicht minuetlich, und der AUTO_LAUF_MIN_TAGE-Guard sorgt
  * ohnehin dafuer, dass trotz des breiten Fensters nur einmal pro Woche tatsaechlich
- * gelaufen wird. `wochentag`/`uhrzeitHHMM` kommen ab AP16b optional aus dem Admin-Dashboard
+ * gelaufen wird. `wochentag`/`uhrzeitHHMM` kommen optional aus dem Admin-Dashboard
  * (systemSettings.analyse, siehe laufzeitEinstellungen.js) -- Default entspricht dem
  * bisherigen Festwert Sonntag 19:30.
  * @param {Date} jetzt
@@ -112,9 +112,9 @@ export function istMonatsLaufZeitfenster(jetzt, tagDesMonats = MONATS_LAUF_TAG, 
  * Erlaubnis fuer den automatischen woechentlichen Lauf: Zeitfenster + Budget-Guard +
  * Mindestabstand seit dem letzten AUTOMATISCHEN woechentlichen Lauf.
  * Der `$or` in der Mindestabstands-Abfrage erkennt neben dem aktuellen Schema
- * ({berichtTyp:'woche', ausloeser:'automatisch'}) auch vor dem AP17-Nachtrag geschriebene
- * Laeufe (ausloeser:'woche' ohne berichtTyp-Feld, damals gleichbedeutend mit "automatisch
- * woechentlich") -- ohne das wuerde der Guard direkt nach dem Deploy dieser Aenderung
+ * ({berichtTyp:'woche', ausloeser:'automatisch'}) auch aeltere, vor dieser Schema-Aenderung
+ * geschriebene Laeufe (ausloeser:'woche' ohne berichtTyp-Feld, damals gleichbedeutend mit
+ * "automatisch woechentlich") -- ohne das wuerde der Guard direkt nach dem Deploy dieser Aenderung
  * faelschlich "noch nie automatisch gelaufen" annehmen.
  * @param {import('mongodb').Db} db
  * @param {Date} [jetzt]

@@ -11,7 +11,7 @@ import * as Classes from '../lib/classes.js'
 import { NextControl } from '../nextcontrol.js'
 import { kodiereAktion, schliesseMenue } from '../lib/manialinkMenu.js'
 
-/** Praefix der Menue-Aktion "Aktuelle Karte bewerten" (Hauptmenue, AP17c+) -- getrennt von
+/** Praefix der Menue-Aktion "Aktuelle Karte bewerten" (Hauptmenue) -- getrennt von
  *  VOTE_AKTION_PRAEFIX, damit die Klick-Behandlung der Bewertungsknoepfe unangetastet bleibt. */
 const MENU_AKTION_PRAEFIX = 'karmamenu';
 
@@ -59,7 +59,7 @@ export class KarmaPlugin {
             this.name
         ));
 
-        // AP17c-Nachtrag (Betreiber-Wunsch 2026-09-01): Karma-Bewertung der AKTUELL
+        // Nachtrag (Betreiber-Wunsch 2026-09-01): Karma-Bewertung der AKTUELL
         // laufenden Karte auch jederzeit ueber das Hauptmenue erreichbar, nicht nur
         // automatisch bei Kartenende.
         nextcontrol.registerMenuEintrag(new Classes.MenuEintrag(
@@ -75,7 +75,7 @@ export class KarmaPlugin {
      * @param {Array<String>} params Parameters passed by the player after the command (seperated by space)
      */
     async commandKarma(login, params) {
-        if (dbtype !== 'mongodb') return; // MySQL-Codepfad nicht angefasst (siehe CLAUDE.md)
+        if (dbtype !== 'mongodb') return; // MySQL-Codepfad nicht angefasst
 
         const uid = this.nextcontrol.status.map.uid;
         const mapName = this.nextcontrol.status.map.name;

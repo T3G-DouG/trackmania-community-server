@@ -1,4 +1,4 @@
-// backup-db.js -- Taegliches DB-Backup (AP12). Reine Mongo-Treiber-API + EJSON,
+// backup-db.js -- Taegliches DB-Backup. Reine Mongo-Treiber-API + EJSON,
 // kein mongodump-Binary noetig (Projekt-Konvention, siehe refresh-testdb.js).
 //
 // Schreibt pro Collection eine EJSON-Datei (erhaelt ObjectId/Date verlustfrei)
@@ -7,7 +7,7 @@
 //
 // Aufruf (Test-DB, Standard):
 //   node backup-db.js
-// Echt gegen die Live-DB (erst nach Bestaetigung, AP11/AP12):
+// Echt gegen die Live-DB (erst nach Bestaetigung):
 //   node backup-db.js --db nextcontrol --out C:\LAN\trackma2020\backups_db --tage 14
 
 import { MongoClient } from 'mongodb';

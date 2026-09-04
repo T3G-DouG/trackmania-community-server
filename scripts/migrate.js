@@ -1,7 +1,7 @@
 // migrate.js — Einmalige Migration: Archiv-Daten monats-zuordenbar machen und
 // Monats-Rankings (monthlyRankings) aus der Historie berechnen.
 //
-// Standard-Ziel ist die TEST-DB. Gegen die echte DB nur mit --live (Cutover, AP11).
+// Standard-Ziel ist die TEST-DB. Gegen die echte DB nur mit --live (Cutover).
 //   node migrate.js                 → nextcontrol_test
 //   node migrate.js --live          → nextcontrol (nur beim Cutover!)
 //
@@ -192,7 +192,7 @@ try {
             : []),
         '',
     ];
-    const berichtPfad = join(projektRoot, 'docs', 'migration-ambiguities.md');
+    const berichtPfad = join(projektRoot, 'migration-ambiguities.md');
     writeFileSync(berichtPfad, zeilen.join('\n'), 'utf8');
     console.log(`\nBericht: ${berichtPfad}`);
     console.log(`archivRecords ohne Monat: ${ohneMonat}, mehrdeutige Maps: ${mehrdeutig.size}, MS-Dateien mit fehlenden Maps: ${unaufgeloest.size}`);

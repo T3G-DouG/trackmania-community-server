@@ -74,8 +74,8 @@ ${mapZeilen}
 }
 
 /**
- * Erzeugt MatchSettings-XML fuer eine Cup-Phase (TM_Rounds_Online) -- AP14b, siehe
- * docs/CUP-PLAN.md. Rein additiv, `erzeugeMatchSettingsXml` (TimeAttack, Monats-
+ * Erzeugt MatchSettings-XML fuer eine Cup-Phase (TM_Rounds_Online). Rein additiv,
+ * `erzeugeMatchSettingsXml` (TimeAttack, Monats-
  * wechsel) bleibt unangetastet. `punkteProRunde` ist die EIGENE Rundenpunkte-Tabelle
  * eines Cup-Turniers (`cupTurniere.config.punkteProRunde`) -- niemals die fixierte
  * Monats-Punkteformel aus `scripts/lib/punkte.js`.

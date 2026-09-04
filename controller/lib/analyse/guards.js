@@ -1,6 +1,6 @@
-// guards.js — AP15d: Zahlen-/Namens-Whitelist-Guard fuer KI-generierte Analyse-Texte.
-// PURE Funktionen (kein DB-Zugriff, kein nextcontrol.js-Import). "Load-bearing" laut
-// docs/KI-ANALYSE-PLAN.md: die KI darf NIEMALS eine Zahl oder einen Spielernamen nennen,
+// guards.js — Zahlen-/Namens-Whitelist-Guard fuer KI-generierte Analyse-Texte.
+// PURE Funktionen (kein DB-Zugriff, kein nextcontrol.js-Import). Load-bearing:
+// die KI darf NIEMALS eine Zahl oder einen Spielernamen nennen,
 // die nicht woertlich in den gelieferten Kennzahlen stehen (Empirie aus kiEnrich.js:
 // reines Prompt-Vertrauen reicht nachweislich nicht -- Claude Haiku ignorierte die
 // Sprachregel dort in ~50% der Faelle trotz expliziter Anweisung). Ein Verstoss verwirft

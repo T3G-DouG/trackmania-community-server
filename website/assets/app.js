@@ -3,7 +3,7 @@
 // Historische "season:..."-Monatstoken (z.B. "season:Fall2020") aus alten
 // TM2020-Kampagnendateien, einmalig von scripts/migrate.js erzeugt. Nach dem
 // Cutover entstehen keine neuen mehr. Identische Logik zu scripts/lib/saison.js
-// und website/lib/saison.php. Siehe docs/SYSTEM.md, Abschnitt "Season-Sonderfall".
+// und website/lib/saison.php.
 const SAISON_MONAT = { Winter: '12', Spring: '03', Summer: '06', Fall: '09' };
 const SAISON_NAME = { Winter: 'Winter', Spring: 'Frühling', Summer: 'Sommer', Fall: 'Herbst' };
 

@@ -118,7 +118,7 @@ export class PlayerStatsPlugin {
             stats.timePlayed += minuten;
             stats.timePlayedMonat += minuten;
             this.joinTimes.delete(player.login);
-            // Eigenes try/catch: das Session-Tracking (AP15a, nur Grundlage fuer spaetere
+            // Eigenes try/catch: das Session-Tracking (nur Grundlage fuer spaetere
             // Analysen) darf NIEMALS die schon vorher bestehende, wichtigere saveStats()
             // darunter verhindern -- weder durch einen Wurf hier noch durch eine
             // unhandled rejection (es gibt keinen globalen Handler im Controller).

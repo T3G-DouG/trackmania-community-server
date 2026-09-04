@@ -27,8 +27,8 @@ import { MenuPlugin } from "./plugins/menu.js";
 // import { PluginClass } from './path/to/file.js';
 
 /**
- * Klasse+Name je Plugin, damit disabledPlugins/cupModusPluginAllowlist (AP14a,
- * docs/CUP-PLAN.md) VOR der Instanziierung ausgewertet werden koennen -- der Name
+ * Klasse+Name je Plugin, damit disabledPlugins/cupModusPluginAllowlist
+ * VOR der Instanziierung ausgewertet werden koennen -- der Name
  * selbst ist erst nach dem Konstruktor als Instanzfeld verfuegbar, Konstruktoren
  * haben aber Seiteneffekte (Telegram-Polling, Timer, Befehls-Registrierung), die bei
  * einem deaktivierten/nicht erlaubten Plugin nie ausgeloest werden duerfen. Der

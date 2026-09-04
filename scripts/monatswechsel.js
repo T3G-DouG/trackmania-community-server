@@ -14,7 +14,7 @@
 //   node monatswechsel.js --input naechster-monat.json
 // Echt ausfuehren:
 //   node monatswechsel.js --input naechster-monat.json --db nextcontrol --live
-// Gegen einen Trainings-Server testen (siehe docs/ARBEITSPAKETE.md AP8):
+// Gegen einen Trainings-Server testen:
 //   node monatswechsel.js --input naechster-monat.json --live --xmlrpc-port 5556
 //   node monatswechsel.js --input naechster-monat.json --live --skip-server   (nur DB, kein Server)
 

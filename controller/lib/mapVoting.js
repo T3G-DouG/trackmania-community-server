@@ -1,13 +1,13 @@
-// mapVoting.js — Datei-Scan-Hilfsfunktionen für die AP10-Map-Abstimmung.
+// mapVoting.js — Datei-Scan-Hilfsfunktionen für die Map-Abstimmung.
 // Bewusst ohne Abhängigkeit zu nextcontrol.js, damit dies isoliert testbar
 // ist (ein Import von telegram.js selbst würde den kompletten Server
-// hochfahren, siehe docs/SYSTEM.md AP10).
+// hochfahren).
 
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
-// Per TM_MAPS_DIR uebersteuerbar, damit der Cutover auf Server_latest (siehe
-// docs/SYSTEM.md) nur eine Umgebungsvariable braucht statt eines Codeeingriffs.
+// Per TM_MAPS_DIR uebersteuerbar, damit ein Wechsel des Server-Verzeichnisses
+// nur eine Umgebungsvariable braucht statt eines Codeeingriffs.
 export const MAPS_DIR = (process.env.TM_MAPS_DIR || 'C:/LAN/trackma2020/Server/UserData/Maps').replace(/[\\/]+$/, '');
 
 /** Alle .Map.Gbx-Dateien unter einem Ordner rekursiv auflisten (Pfad relativ zu MAPS_DIR, mit Backslashes). */

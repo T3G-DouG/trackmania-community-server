@@ -10,7 +10,7 @@ function ladeSecrets(pfad) {
     if (!existsSync(pfad)) {
         throw new Error(
             `Secrets-Datei nicht gefunden: ${pfad}\n` +
-            `Lege sie an (siehe docs/SYSTEM.md) oder setze TRACKMANIA_SECRETS_PATH.`
+            `Lege sie an (siehe SETUP.md) oder setze TRACKMANIA_SECRETS_PATH.`
         );
     }
     const werte = {};

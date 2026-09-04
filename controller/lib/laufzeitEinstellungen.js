@@ -3,7 +3,7 @@ import { Settings } from '../settings.js';
 
 /**
  * Laufzeit-Einstellungen fuer die KI-Features (Rennleitung, Nachrichten-KI, spaeter
- * Analyse-Modul), ueberschreibbar per Admin-Dashboard (AP16) ohne Controller-Neustart.
+ * Analyse-Modul), ueberschreibbar per Admin-Dashboard ohne Controller-Neustart.
  *
  * Quelle der Wahrheit ist die Collection `systemSettings` (Singleton-Dokument
  * _id:"aktuell"). Fehlt sie (Erstinstallation, Rollback), gelten unveraendert die
@@ -58,7 +58,7 @@ function defaults() {
             modell: Settings.ki.modell,
             maxProStunde: Settings.nachrichtenKi.maxProStunde,
         },
-        // AP16b: Analyse-Zeitplan/-Modell/Telegram-Toggle. Default entspricht exakt dem bisher
+        // Analyse-Zeitplan/-Modell/Telegram-Toggle. Default entspricht exakt dem bisher
         // fest verdrahteten Verhalten aus automatikTakt.js (Sonntag ab 19:30, claude-sonnet-5,
         // Telegram-Bericht an) -- ohne systemSettings-Dokument aendert sich also nichts.
         analyse: {
@@ -67,7 +67,7 @@ function defaults() {
             uhrzeit: '19:30',
             telegramBericht: true,
         },
-        // AP17: Tagesreport (telegram.js, AP10) -- kein LLM (rein deterministisch), daher nur
+        // Tagesreport (telegram.js) -- kein LLM (rein deterministisch), daher nur
         // Ein/Aus + Uhrzeit. Default entspricht exakt dem bisher fest verdrahteten Verhalten
         // (taeglich 20:00, sofern an dem Tag gefahren wurde).
         tagesreport: {

@@ -1,4 +1,4 @@
-// reset-playerstats-cutover.js -- EINMALIGES Cutover-Skript (AP11).
+// reset-playerstats-cutover.js -- EINMALIGES Cutover-Skript.
 //
 // Betreiber-Entscheidung 2026-07-18: Die vor dem Cutover gesammelten Live-
 // Aktivitaetsdaten (Spielzeit/Verbindungen/Finishes/Checkpoints -- sowohl die
@@ -9,7 +9,7 @@
 //
 // WICHTIG: Punkte/Siege/Maps-Historie ist davon NICHT betroffen -- die lebt
 // in records/archivRecords/monthlyRankings/yearlyRankings (migriert durch
-// AP6) und bleibt vollstaendig und durchgaengig erhalten. Dieses Skript
+// das Migrationsskript) und bleibt vollstaendig und durchgaengig erhalten. Dieses Skript
 // ruehrt NUR die Collection "playerStats" an.
 //
 // Setzt fuer ALLE Spieler zurueck: wins, timePlayed, connections, finishes,
@@ -19,7 +19,7 @@
 // neu angelegt werden muessen.
 //
 // Aufruf (Vorschau):     node reset-playerstats-cutover.js --db nextcontrol_test
-// Aufruf (echt, AP11):   node reset-playerstats-cutover.js --db nextcontrol --live
+// Aufruf (echt, beim Cutover): node reset-playerstats-cutover.js --db nextcontrol --live
 
 import { MongoClient } from 'mongodb';
 import { mongoUri } from './lib/mongo.js';

@@ -1,4 +1,4 @@
-// berichtLauf.js — AP15d: orchestriert einen kompletten Analyse-Lauf (laden -> rechnen ->
+// berichtLauf.js — orchestriert einen kompletten Analyse-Lauf (laden -> rechnen ->
 // texten -> kiAnalysen-Insert -> alte Laeufe aufraeumen) + baut den Telegram-Kompaktbericht.
 // Wirft NIE unbehandelt (kein globaler unhandledRejection-Handler im Controller, siehe
 // errungenschaften.js) -- ein Fehler hier darf nie den aufrufenden Prozess gefaehrden.
@@ -6,7 +6,7 @@
 // Sendet selbst NICHTS per Telegram -- baut nur den Berichtstext (`telegramBericht`-Feld
 // im zurueckgegebenen Dokument). Das Verschicken (und das Setzen von `telegramGesendetAm`
 // nach erfolgreichem Versand) obliegt dem Aufrufer (scripts/analyse-lauf.js hier, spaeter
-// controller/plugins/analyse.js in AP15e) -- unterschiedliche Kontexte nutzen dafuer
+// controller/plugins/analyse.js) -- unterschiedliche Kontexte nutzen dafuer
 // unterschiedliche Telegram-Helfer (scripts/lib/telegram.js vs. controller/lib/telegramAlert.js).
 
 import { Settings } from '../../settings.js';
@@ -95,9 +95,9 @@ function ermittleGesamtStatus(ergebnisse) {
  * gehoeren. Wirft nie -- liefert bei einem harten Fehler `null` statt zu werfen.
  * @param {import('mongodb').Db} db
  * @param {{ausloeser?: 'automatisch'|'manuell', berichtTyp?: 'woche'|'monat', live?: boolean, modell?: string}} [opts]
- *   `berichtTyp` waehlt das Kennzahlen-Set (AP17-Nachtrag: 'woche' = nur das tatsaechliche
+ *   `berichtTyp` waehlt das Kennzahlen-Set ('woche' = nur das tatsaechliche
  *   Wochengeschehen, 'monat' = der historische Rueckblick ueber vergangene Monate -- siehe
- *   kennzahlen.js). `modell` ab AP16b optional vom Admin-Dashboard (systemSettings.analyse);
+ *   kennzahlen.js). `modell` optional vom Admin-Dashboard (systemSettings.analyse);
  *   Default Settings.ki.analyseModell.
  * @returns {Promise<object|null>}
  */

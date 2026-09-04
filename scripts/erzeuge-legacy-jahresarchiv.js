@@ -5,7 +5,7 @@
 // direkt aus archivRecords berechnet zu werden).
 //
 // Aufruf (Vorschau):     node erzeuge-legacy-jahresarchiv.js --db nextcontrol_test
-// Aufruf (echt, AP11):   node erzeuge-legacy-jahresarchiv.js --db nextcontrol --live
+// Aufruf (echt, nach Cutover-Freigabe): node erzeuge-legacy-jahresarchiv.js --db nextcontrol --live
 
 import { MongoClient } from 'mongodb';
 import { mongoUri } from './lib/mongo.js';

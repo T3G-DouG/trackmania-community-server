@@ -1,4 +1,4 @@
-// manialinkMenu.js -- Gemeinsame Bau-Helfer fuer die ManiaLink-Menueoberflaeche (AP17c+).
+// manialinkMenu.js -- Gemeinsame Bau-Helfer fuer die ManiaLink-Menueoberflaeche.
 //
 // Reine Funktionsbibliothek ohne eigenen XML-RPC-Zugriff -- jedes Plugin sendet/empfaengt
 // selbst per SendDisplayManialinkPage(ToLogin) / onManialinkPageAnswer, wie schon bei

@@ -317,7 +317,7 @@ function renderNaheDuelle(daten) {
     };
 }
 
-// AP17-Nachtrag: der Wochenbericht (laeuft sonntags) zeigt bewusst NUR Signale, die sich
+// Der Wochenbericht (laeuft sonntags) zeigt bewusst NUR Signale, die sich
 // innerhalb einer Woche tatsaechlich veraendern -- die vorher hier mitgelaufenen
 // Monats-Kennzahlen (Formkurven/Aktivitaet/Dominanz/Zeiteinsatz/Rivalitaeten/Anomalien) blieben
 // bis zum naechsten Monatswechsel byte-identisch und wiederholten so faktisch denselben
@@ -357,8 +357,8 @@ function formatDatum(iso) {
 /**
  * Rendert einen Lauf in einen der drei Panel-Container (siehe HTML: analyse-wurzel-woche/
  * -monat/-archiv). `wurzelId` dient gleichzeitig als Namespace fuer die Chart-SVG-IDs --
- * Wochen-/Monats-/Archiv-Panel stehen jetzt gleichzeitig auf der Seite (AP17-Nachtrag,
- * vorher genau ein Panel per Dropdown-Auswahl), ohne eindeutige IDs je Panel wuerden sich
+ * Wochen-/Monats-/Archiv-Panel stehen gleichzeitig auf der Seite (vorher genau ein
+ * Panel per Dropdown-Auswahl), ohne eindeutige IDs je Panel wuerden sich
  * gleichnamige Kategorien (z.B. "Aufsteiger" in Wochen- UND Monatsbericht) die gleiche
  * <svg id="..."> teilen.
  */
@@ -597,7 +597,7 @@ async function laden() {
         setConnectionStatus(true);
         await pruefeServerErreichbarkeit();
 
-        // AP17-Nachtrag: statt nur des chronologisch neuesten Laufs (der wegen der viel
+        // Statt nur des chronologisch neuesten Laufs (der wegen der viel
         // haeufigeren Wochenberichte den seltenen Monatsbericht sonst fast immer verdraengt
         // haette) jetzt IMMER den neuesten Lauf JE Typ zeigen -- beide Panels dauerhaft sichtbar.
         const neuesterWoche = alleLaeufe.find((l) => l.berichtTyp !== 'monat');

@@ -1,4 +1,4 @@
-// dossierRefresh.js — AP15g: DB-Anbindung fuer dossier.js (bewusst getrennt von der puren
+// dossierRefresh.js — DB-Anbindung fuer dossier.js (bewusst getrennt von der puren
 // Berechnung, Muster wie berichtLauf.js zu kennzahlen.js). Schreibt/liest die Collection
 // `spielerDossiers`. Wirft NIE unbehandelt (kein globaler unhandledRejection-Handler im
 // Controller, siehe errungenschaften.js) -- jede Exportfunktion faengt DB-Fehler selbst ab.
@@ -23,7 +23,7 @@ async function schreibeDossier(db, login, daten) {
 
 /**
  * Aktualisiert die Dossiers ALLER bekannten Spieler (players + archivPlayers). Fuer den
- * naechtlichen Tick (AP15e). Ein Fehler bei einem einzelnen Login bricht die anderen nicht ab.
+ * naechtlichen Tick. Ein Fehler bei einem einzelnen Login bricht die anderen nicht ab.
  * @param {import('mongodb').Db} db
  * @returns {Promise<{aktualisiert: number, fehlgeschlagen: number}>}
  */

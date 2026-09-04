@@ -1,12 +1,12 @@
 // backup-full.js -- Vollstaendiges Crash-Backup nach C:\BackupSync\Trackmania.
 // Sichert alles, was fuer eine Wiederherstellung noetig ist UND nicht schon
-// per Git/GitHub gesichert ist (controller/, scripts/, website/, docs/ also
+// per Git/GitHub gesichert ist (controller/, scripts/, website/ also
 // nicht Teil dieses Skripts). Der Zielordner wird von einem anderen Rechner
 // gespiegelt -- ueberlebt also auch einen Totalausfall dieses Rechners.
 //
 // Zwei Arten von Inhalten:
 //  1. MongoDB (nextcontrol + nextcontrol_test): taeglich neuer, rotierender
-//     EJSON-Dump ueber das bestehende backup-db.js (AP12) -- mit Historie,
+//     EJSON-Dump ueber das bestehende backup-db.js -- mit Historie,
 //     falls ein Datenverlust/eine Korruption erst spaeter auffaellt.
 //  2. Dateien (Server-Config, Maps, Replays, Secrets, SSL-Zertifikate, alte
 //     Live-Website): robocopy-Spiegelung (/MIR) des jeweils aktuellen Stands --
@@ -18,7 +18,7 @@
 // Aufruf: node backup-full.js
 // Taeglicher Lauf: siehe backup-full.bat + Windows-Taskplaner "Trackmania-Backup" (06:00 Uhr).
 //
-// Nur Lesezugriffe auf das Live-System (CLAUDE.md-Ausnahme) -- es wird nirgends
+// Nur Lesezugriffe auf das Live-System -- es wird nirgends
 // in nextcontrol oder unter C:\LAN\trackma2020\ / C:\xampp\htdocs\trackmania\
 // geschrieben, nur daraus gelesen bzw. nach C:\BackupSync\Trackmania kopiert.
 

@@ -1,7 +1,7 @@
 // erzeuge-map-beschreibungen.js -- Erzeugt fuer alle bisher NIE gespielten Strecken
 // (Campaigns + My Maps) eine automatische Kurzbeschreibung + Metadaten und cacht sie
-// in der Collection "mapBeschreibungen". telegram.js liest daraus beim Monats-Voting
-// (AP13a), damit das Voting nicht jedes Mal alle Kandidaten per XML-RPC abfragen muss
+// in der Collection "mapBeschreibungen". telegram.js liest daraus beim Monats-Voting,
+// damit das Voting nicht jedes Mal alle Kandidaten per XML-RPC abfragen muss
 // und neue Kandidaten sofort eine Beschreibung haben, statt live auf GetMapInfo zu warten.
 //
 // Idempotent: bereits gecachte Dateien werden uebersprungen (Grundlage: normalisierter

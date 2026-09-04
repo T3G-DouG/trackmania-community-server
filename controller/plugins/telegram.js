@@ -165,8 +165,8 @@ export class TelegramBot {
     hofRankingSnapshot = null
 
     /**
-     * Verbesserungen seit dem letzten Tagesreport (AP10) -- deckt die letzten ~24 Stunden ab,
-     * unabhaengig von der konfigurierten Uhrzeit (AP17, systemSettings.tagesreport).
+     * Verbesserungen seit dem letzten Tagesreport -- deckt die letzten ~24 Stunden ab,
+     * unabhaengig von der konfigurierten Uhrzeit (systemSettings.tagesreport).
      * @type {Array}
      * @private
      */
@@ -256,7 +256,7 @@ export class TelegramBot {
             this.name
         ));
 
-        // In-Game-Befehl zum Verknuepfen mit Telegram (AP10)
+        // In-Game-Befehl zum Verknuepfen mit Telegram
         nextcontrol.registerChatCommand(new Classes.ChatCommand(
             'link',
             this.commandLink,
@@ -264,7 +264,7 @@ export class TelegramBot {
             this.name
         ));
 
-        // AP17d/h: Menue-Eintraege
+        // Menue-Eintraege
         nextcontrol.registerMenuEintrag(new Classes.MenuEintrag(
             'Allgemein', 'Telegram-Bot-Status', kodiereAktion(AKTION_PRAEFIX, 'status'), { pluginName: this.name }
         ));
@@ -278,7 +278,7 @@ export class TelegramBot {
         // save the reference to the main class instance
         this.nextcontrol = nextcontrol;
 
-        // AP17: Tagesreport-Zeitplan (Ein/Aus + Uhrzeit) per Admin-Dashboard konfigurierbar --
+        // Tagesreport-Zeitplan (Ein/Aus + Uhrzeit) per Admin-Dashboard konfigurierbar --
         // initialisiereLaufzeitEinstellungen() ist idempotent (siehe rennleitung.js/nachrichtenKi.js).
         initialisiereLaufzeitEinstellungen(nextcontrol.mongoDb);
 
@@ -448,7 +448,7 @@ export class TelegramBot {
     }
 
     /**
-     * Ermittelt den verknüpften Spieler-Login für einen Telegram-User (AP10).
+     * Ermittelt den verknüpften Spieler-Login für einen Telegram-User.
      * @param {Number} telegramUserId
      * @returns {Promise<String|null>}
      * @private
@@ -721,7 +721,7 @@ export class TelegramBot {
      * Settings.cup.aktiv abschaltbar (Default AUS, siehe settings.js) -- diese
      * Funktion laeuft im normal-live Haupt-Controller (kein CUP_MODUS-Gate wie beim
      * separaten Cup-Controller-Prozess moeglich) und darf vor der expliziten
-     * AP14j-Freigabe unter keinen Umstaenden auf echte Nutzer reagieren.
+     * Freigabe des Betreibers unter keinen Umstaenden auf echte Nutzer reagieren.
      * Schreibt NIE direkt in cupTurniere -- immer ueber die cupKommandos-Bruecke
      * (derselbe Mechanismus wie die In-Game-Admin-Befehle in cup.js), damit der
      * Cup-Controller der einzige Schreiber bleibt.
@@ -892,7 +892,7 @@ export class TelegramBot {
     }
 
     /**
-     * Namens-Index login -> Anzeigename (players + archivPlayers), fuer AP10-Befehle.
+     * Namens-Index login -> Anzeigename (players + archivPlayers), fuer die Telegram-Befehle.
      * @private
      */
     async spielerNamenIndex() {
@@ -1189,7 +1189,7 @@ export class TelegramBot {
     }
 
     /**
-     * Verarbeitet eine Stimmabgabe der laufenden Map-Abstimmung (AP10).
+     * Verarbeitet eine Stimmabgabe der laufenden Map-Abstimmung.
      * @param {Object} pollAnswer Telegram poll_answer update
      * @private
      */
@@ -1281,7 +1281,7 @@ export class TelegramBot {
         this.sendMessage(text, zielChatId && zielChatId !== this.chatId ? { chat_id: zielChatId } : {});
     }
 
-    /** Fängt Fehler in den AP10-Telegram-Befehlen ab, statt sie als unhandled rejection verschwinden zu lassen. */
+    /** Fängt Fehler in den Telegram-Befehlen ab, statt sie als unhandled rejection verschwinden zu lassen. */
     meldeBefehlsFehler(befehl, error, zielChatId) {
         logger('er', `Telegram: Fehler bei ${befehl}: ${error.stack || error.message}`);
         this.antworte(zielChatId, `❌ Fehler bei ${befehl}: ${error.message}`);
@@ -1758,7 +1758,7 @@ export class TelegramBot {
                 });
             }
 
-            // Tracking fuer den Tagesreport (AP10, Zeitplan konfigurierbar per Dashboard, AP17)
+            // Tracking fuer den Tagesreport (Zeitplan konfigurierbar per Dashboard)
             this.tagesVerbesserungen.push({
                 login: waypointInfo.login,
                 name: player.name,
@@ -1823,7 +1823,7 @@ export class TelegramBot {
         // This ensures we have all final improvements before summarizing
     }
 
-    // ─── AP10: Zeitgesteuerte Aufgaben (Tagesreport, Wochenrückblick, Map-Abstimmung) ───
+    // ─── Zeitgesteuerte Aufgaben (Tagesreport, Wochenrückblick, Map-Abstimmung) ───
 
     /**
      * Wird jede Minute aufgerufen und prüft, ob eine der zeitgesteuerten
@@ -1835,7 +1835,7 @@ export class TelegramBot {
             const jetzt = new Date();
             const heute = jetzt.toISOString().slice(0, 10);
 
-            // AP17: Tagesreport-Zeitplan per Admin-Dashboard konfigurierbar (Default 20:00, wie
+            // Tagesreport-Zeitplan per Admin-Dashboard konfigurierbar (Default 20:00, wie
             // bisher fest verdrahtet). Ganztaegiges Fenster ab der konfigurierten Uhrzeit (Muster
             // wie automatikTakt.js) statt exaktem Minutentreffer -- robust gegen verpasste Ticks.
             const tagesreportEinst = holeEinstellungen().tagesreport;
@@ -1869,7 +1869,7 @@ export class TelegramBot {
                 await this.schliesseMapAbstimmung();
             }
 
-            // AP14e: Cup-Start-Erinnerung -- nur wenn das Feature ueberhaupt aktiv ist
+            // Cup-Start-Erinnerung -- nur wenn das Feature ueberhaupt aktiv ist
             if (Settings.cup.aktiv) {
                 await this.pruefeCupErinnerung(jetzt);
             }
@@ -1887,7 +1887,7 @@ export class TelegramBot {
     }
 
     /**
-     * Sendet den Tagesreport (Zeitplan per Dashboard konfigurierbar, siehe AP17), sofern in den
+     * Sendet den Tagesreport (Zeitplan per Dashboard konfigurierbar), sofern in den
      * letzten ~24 Stunden (seit dem letzten Report) jemand gefahren ist. Zeigt NICHT mehr jede
      * einzelne Verbesserung, sondern nur die Anzahl je Spieler, dazu einmal die aktuelle
      * Monatstabelle mit Trendangabe (Rangvergleich zum letzten Tagesreport, siehe dailySnapshots).
@@ -1943,7 +1943,7 @@ export class TelegramBot {
 
         this.sendMessage(msg);
 
-        // AP17: Tagesreport zusaetzlich persistieren, damit die Analyseseite ihn anzeigen kann
+        // Tagesreport zusaetzlich persistieren, damit die Analyseseite ihn anzeigen kann
         // (identisch zur Telegram-Ansicht: Verbesserungen je Spieler + Monatstabelle mit Trend).
         // Rein additiv -- ein Fehler hier darf den bereits verschickten Telegram-Bericht nicht als
         // Fehlschlag erscheinen lassen, daher eigenes try/catch.
@@ -2197,7 +2197,7 @@ export class TelegramBot {
 
     /**
      * Schließt die Map-Abstimmung, ermittelt die 6 Gewinner-Maps und schreibt
-     * scripts/naechster-monat.json für AP8 (monatswechsel.js).
+     * scripts/naechster-monat.json für monatswechsel.js.
      * @private
      */
     async schliesseMapAbstimmung() {

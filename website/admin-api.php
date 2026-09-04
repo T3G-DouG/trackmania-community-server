@@ -1,21 +1,20 @@
 <?php
-// admin-api.php -- Authentifizierte API des Admin-Dashboards (AP16). Bewusst getrennt
+// admin-api.php -- Authentifizierte API des Admin-Dashboards. Bewusst getrennt
 // von api.php: die öffentliche, unauthentifizierte API bleibt frei von Auth-Logik.
 //
 // Aktionen: ?action=lesen (GET, Session-Pflicht)
 //           ?action=schreiben (POST, JSON-Body {bereich, werte, csrf}, Session+CSRF-Pflicht)
-//           ?action=analyseTrigger (POST, JSON-Body {csrf}, Session+CSRF-Pflicht, AP16b) --
-//               stößt den manuellen Analyse-Lauf über adminKommandos an (Website → Controller,
-//               siehe docs/ADMIN-DASHBOARD-PLAN.md "Neues Richtungsmuster").
-//           ?action=serverBefehl (POST, JSON-Body {befehl, parameter, csrf}, Session+CSRF-Pflicht,
-//               AP16c) -- fuehrt einen der bisherigen /admin-Chatbefehle (skip/restart/extend/
+//           ?action=analyseTrigger (POST, JSON-Body {csrf}, Session+CSRF-Pflicht) --
+//               stößt den manuellen Analyse-Lauf über adminKommandos an (Website → Controller).
+//           ?action=serverBefehl (POST, JSON-Body {befehl, parameter, csrf}, Session+CSRF-Pflicht)
+//               -- fuehrt einen der bisherigen /admin-Chatbefehle (skip/restart/extend/
 //               jukeboxClear/modeSave/modeRead/modeReset/mapTmx/mapEntfernen/shutdown) über
 //               denselben adminKommandos-Mechanismus aus (siehe controller/plugins/serverSteuerung.js).
-//           ?action=telegramVerknuepfungen (GET, Session-Pflicht, AP16c) -- listet alle
+//           ?action=telegramVerknuepfungen (GET, Session-Pflicht) -- listet alle
 //               bestehenden Spieler<->Telegram-Verknuepfungen (Collection telegramLinks).
 //               Bewusst NICHT ueber die oeffentliche api.php: Telegram-Username/-User-ID sind
 //               personenbezogen, anders als System-Status/Log.
-//           ?action=telegramLoesen (POST, JSON-Body {id, csrf}, Session+CSRF-Pflicht, AP16c) --
+//           ?action=telegramLoesen (POST, JSON-Body {id, csrf}, Session+CSRF-Pflicht) --
 //               loescht eine Verknuepfung direkt aus der DB (kein Controller-Umweg noetig,
 //               telegramLinks wird vom Controller bei jeder Aktion frisch gelesen, kein Cache).
 //
@@ -216,7 +215,7 @@ try {
         $eingabe = $body['werte'] ?? [];
 
         if ($bereich === 'analyse') {
-            // AP16b: eigene Feldform (wochentag/uhrzeit statt min/max-Zahlenfeldern) --
+            // Eigene Feldform (wochentag/uhrzeit statt min/max-Zahlenfeldern) --
             // deshalb nicht ueber die generische ADMIN_GRENZEN-Klemmung unten, sondern die
             // dedizierten Pruef-Funktionen aus einstellungenGrenzen.php.
             $aktuellerBereich = array_merge(ADMIN_ANALYSE_DEFAULTS, $vorhandenesDoc['analyse'] ?? []);
@@ -237,7 +236,7 @@ try {
                 $neuerBereich['telegramBericht'] = (bool) $eingabe['telegramBericht'];
             }
         } elseif ($bereich === 'tagesreport') {
-            // AP17: eigene Feldform (aktiv/uhrzeit, kein Modell) -- analog zum analyse-Zweig
+            // Eigene Feldform (aktiv/uhrzeit, kein Modell) -- analog zum analyse-Zweig
             // oben nicht ueber die generische ADMIN_GRENZEN-Klemmung.
             $aktuellerBereich = array_merge(ADMIN_TAGESREPORT_DEFAULTS, $vorhandenesDoc['tagesreport'] ?? []);
             $neuerBereich = $aktuellerBereich;

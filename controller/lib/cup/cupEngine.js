@@ -2,7 +2,7 @@
 // als reine State-Machine. BEWUSST OHNE nextcontrol-Import (Testbarkeitsregel,
 // bestehendes Muster in controller/lib/errungenschaftenLogik.js) -- reine
 // Funktionen auf Plain-Data (`cupTurniere`-Dokumentstruktur). Der
-// Aufrufer (controller/plugins/cup.js, erst AP14d) fuehrt die zurueckgegebenen
+// Aufrufer (controller/plugins/cup.js) fuehrt die zurueckgegebenen
 // Aktionen aus (Server-/Telegram-Kommandos) und persistiert den neuen Turnierzustand
 // unveraendert in `cupTurniere`. Diese Datei selbst schreibt nie in eine Datenbank.
 //
@@ -24,7 +24,7 @@ export const MINDEST_TEILNEHMER = 3;
 
 /**
  * Erzeugt ein neues, leeres cupTurniere-Dokument im Status "angekuendigt".
- * Reine Hilfsfunktion fuer Aufrufer (z.B. scripts/cup-anlegen.js, erst AP14e) --
+ * Reine Hilfsfunktion fuer Aufrufer (z.B. scripts/cup-anlegen.js) --
  * die Engine selbst verlangt keine bestimmte Erzeugungsart.
  * @param {{name:string, format:string, maps:string[], punkteProRunde?:number[], formatConfig:object, geplanterStart?:string}} eingabe
  */
@@ -80,7 +80,7 @@ export function verarbeiteEreignis(turnierEingabe, ereignis, jetzt = new Date())
         case 'spielerVerbunden': return spielerVerbunden(turnier, ereignis, jetzt);
         case 'siegerehrungAbgeschlossen': return siegerehrungAbgeschlossen(turnier, jetzt);
         case 'admin': {
-            // AP14e-Nachtrag: Admin-Kommandos (pause/weiter/phaseWiederholen/...) haben
+            // Admin-Kommandos (pause/weiter/phaseWiederholen/...) haben
             // in admin() mehrere stille No-op-Waechter (falscher Status etc.) -- ohne
             // dieses Signal meldete die Telegram-Bruecke faelschlich "Erledigt", obwohl
             // die Engine intern gar nichts getan hat. Erkennung ueber ereignisLog-Laenge:
@@ -145,9 +145,9 @@ function rundenErgebnis(turnier, ereignis, jetzt) {
     let ergebnisse = [...(ereignis.ergebnisse ?? [])];
 
     // Getrennte Spieler, die nicht im uebermittelten Ergebnis auftauchen, bekommen
-    // automatisch den letzten Platz dieser Runde (CUP-PLAN.md: "Disconnect: Runde =
-    // letzter Platz, bei Rueckkehr wieder aktiv") -- gilt fuer beide Formate gleich,
-    // daher hier zentral statt in jedem Format einzeln.
+    // automatisch den letzten Platz dieser Runde (Regel: bei Verbindungsabbruch zaehlt
+    // die Runde als letzter Platz, bei Rueckkehr ist der Spieler wieder aktiv) -- gilt
+    // fuer beide Formate gleich, daher hier zentral statt in jedem Format einzeln.
     const genannteLogins = new Set(ergebnisse.map((e) => e.login));
     const fehlendeGetrennte = turnier.verlauf.getrennt.filter(
         (login) => turnier.verlauf.aktivTeilnehmer.includes(login) && !genannteLogins.has(login)

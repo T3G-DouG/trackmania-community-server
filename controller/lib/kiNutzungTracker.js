@@ -1,4 +1,4 @@
-// kiNutzungTracker.js — AP15c: DB-Anbindung fuer das kiNutzung-Tracking. kiClient.js
+// kiNutzungTracker.js — DB-Anbindung fuer das kiNutzung-Tracking. kiClient.js
 // bleibt bewusst DB-frei (siehe dortiger Kommentar) -- dieses Modul haengt sich per
 // setzeNutzungsTracker() ein, genau wie laufzeitEinstellungen.js einmalig aus einem
 // Plugin-Konstruktor mit dem mongoDb-Handle initialisiert wird (idempotent, mehrere
@@ -6,8 +6,7 @@
 //
 // Collection kiNutzung: ein Dokument je Tag (_id:"YYYY-MM-DD"),
 // { features: { <feature>: { anfragen, inputTokens, outputTokens } } } -- reine
-// $inc-Upserts, macht die bisher komplett verworfenen API-Kosten erstmals sichtbar
-// (siehe docs/KI-ANALYSE-PLAN.md, Befund 1).
+// $inc-Upserts, macht die bisher komplett verworfenen API-Kosten erstmals sichtbar.
 
 import { logger } from './utilities.js';
 

@@ -7,8 +7,8 @@
 //
 // Aktionen: ?action=hof | monate | monat&m=YYYY-MM | jahre | jahr&j=<jahr> | maps | liveRecords
 //           | live[&uid=] | spieler&id=<publicId> | alleSpielerStats | voting | serverLog[&seitId=][&typ=]
-//           | analysen[&lauf=<id>] | analysenHistorie (AP15f, siehe controller/lib/analyse/)
-//           | tagesberichteKalender[&jahr=YYYY] | tagesbericht&datum=YYYY-MM-DD (AP17, Jahres-
+//           | analysen[&lauf=<id>] | analysenHistorie (siehe controller/lib/analyse/)
+//           | tagesberichteKalender[&jahr=YYYY] | tagesbericht&datum=YYYY-MM-DD (Jahres-
 //             Heatmap auf analysen.html, siehe controller/plugins/telegram.js sendeTagesReport)
 //           | mapInfo&uid=<mapUid> (TMX-Map-Info-Widget, rein informativ, gecacht in tmxMapInfo)
 //           | cup | cupLive | cupHistorie | cupDetail&id=<turnierId> (Cup-Turniersystem,
@@ -114,7 +114,7 @@ try {
         return $namen;
     }
 
-    // AP15f: kiAnalysen.kennzahlen enthaelt an vielen, unterschiedlich tief verschachtelten
+    // kiAnalysen.kennzahlen enthaelt an vielen, unterschiedlich tief verschachtelten
     // Stellen rohe Logins (login/loginA/loginB, siehe controller/lib/analyse/kennzahlen.js) --
     // die duerfen laut Projektkonvention NIE an den Client. Statt pro Analyse-Kategorie einen
     // eigenen, fehleranfaelligen Sonderfall zu pflegen, laeuft hier EIN generischer rekursiver
@@ -574,7 +574,7 @@ try {
         }
 
         case 'cupLive': {
-            // AP14f: Live-Snapshot des laufenden Turniers aus cupStatus (Muster wie
+            // Live-Snapshot des laufenden Turniers aus cupStatus (Muster wie
             // action=live -- Frischepruefung, da der Cup-Controller ein separater Prozess
             // ist, der auch mal nicht laufen kann). rangliste/letzteRunde kommen aus dem
             // internen Engine-Zustand und enthalten rohe Logins -- vor der Ausgabe entfernt.
@@ -619,7 +619,7 @@ try {
         }
 
         case 'cupHistorie': {
-            // AP14f: beendete/abgebrochene Turniere fuer die Historie-Ansicht. Podium nur
+            // Beendete/abgebrochene Turniere fuer die Historie-Ansicht. Podium nur
             // die ersten 3 Endstand-Plaetze, nie rohe Logins.
             $query = new MongoDB\Driver\Query(
                 ['status' => ['$in' => ['beendet', 'abgebrochen']]],
@@ -641,7 +641,7 @@ try {
         }
 
         case 'cupDetail': {
-            // AP14f: Detailansicht eines einzelnen Turniers (Endstand + Verlaufslog).
+            // Detailansicht eines einzelnen Turniers (Endstand + Verlaufslog).
             $id = $_GET['id'] ?? '';
             try {
                 $filter = ['_id' => new MongoDB\BSON\ObjectId($id)];
@@ -891,7 +891,7 @@ try {
         }
 
         case 'tagesberichteKalender': {
-            // AP17-Nachtrag: Jahres-Heatmap statt Liste -- liefert nur die schlanken Zaehlwerte
+            // Jahres-Heatmap statt Liste -- liefert nur die schlanken Zaehlwerte
             // je Tag (fuer die Zellenfarbe), der volle Bericht kommt erst bei Klick ueber
             // action=tagesbericht. Enthaelt nur Spielernamen, keine Logins.
             $jahrParam = $_GET['jahr'] ?? '';
@@ -972,7 +972,7 @@ try {
                 'id' => (string) $l['_id'],
                 'erstelltAm' => ($l['erstelltAm'] ?? null) instanceof MongoDB\BSON\UTCDateTime ? $l['erstelltAm']->toDateTime()->format(DATE_ATOM) : null,
                 'ausloeser' => $l['ausloeser'] ?? null,
-                // AP17-Nachtrag: Laeufe vor der Wochen-/Monats-Trennung haben kein berichtTyp-Feld --
+                // Laeufe vor der Wochen-/Monats-Trennung haben kein berichtTyp-Feld --
                 // sie waren inhaltlich alle vom bisherigen (jetzt "woche" genannten) Typ.
                 'berichtTyp' => $l['berichtTyp'] ?? 'woche',
                 'textStatus' => $l['textStatus'] ?? null,

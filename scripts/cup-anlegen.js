@@ -12,7 +12,7 @@
 //   node cup-anlegen.js --input cup-vorlage.json
 // Echt anlegen (gegen die Test-DB, zum Ueben/Testen):
 //   node cup-anlegen.js --input cup-vorlage.json --live
-// Echt anlegen gegen die Live-DB (erst nach AP14j-Freigabe!):
+// Echt anlegen gegen die Live-DB (erst nach expliziter Freigabe des Betreibers!):
 //   node cup-anlegen.js --input cup-vorlage.json --db nextcontrol --live
 
 import { MongoClient } from 'mongodb';

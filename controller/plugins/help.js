@@ -70,7 +70,7 @@ export class HelpCommand {
             this.name
         ));
 
-        // AP17d: Menue-Eintraege
+        // Menue-Eintraege
         nextcontrol.registerMenuEintrag(new Classes.MenuEintrag(
             'Allgemein', 'Hilfe (Befehlsübersicht)', kodiereAktion(AKTION_PRAEFIX, 'hilfe'), { pluginName: this.name }
         ));
@@ -248,7 +248,7 @@ export class HelpCommand {
 
     /**
      * Function run, when a gamemode script triggers a callback not otherwise handled
-     * by nextcontrol.js (AP14a: generic fallthrough, e.g. Trackmania.Scores)
+     * by nextcontrol.js (generic fallthrough, e.g. Trackmania.Scores)
      * @param {String} method Name of the ModeScript event (e.g. "Trackmania.Scores")
      * @param {*} params Parsed JSON payload of the callback, if any
      */

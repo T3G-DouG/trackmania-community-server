@@ -1,12 +1,11 @@
-// berichtKi.js — AP15d: erzeugt KI-Texte zu den deterministisch berechneten Kennzahlen
+// berichtKi.js — erzeugt KI-Texte zu den deterministisch berechneten Kennzahlen
 // (kennzahlen.js) und wendet den Zahlen-/Namens-Guard (guards.js) an. Ein Verstoss
 // verwirft NUR den betroffenen Text (deterministischer Fallback-Satz) -- die Kennzahlen
-// selbst sind davon nie betroffen (siehe docs/KI-ANALYSE-PLAN.md: "KI-Ausfall degradiert
-// nur die Texte, nie die Analyse").
+// selbst sind davon nie betroffen ("KI-Ausfall degradiert nur die Texte, nie die Analyse").
 //
-// Nutzt standardmaessig Settings.ki.analyseModell (Default claude-sonnet-5, AP15c) statt des
-// Rennleitung-Modells (claude-haiku-4-5) -- unabhaengig upgradebar, siehe settings.js. Ab
-// AP16b per optionalem modell-Parameter vom Admin-Dashboard ueberschreibbar (systemSettings.analyse).
+// Nutzt standardmaessig Settings.ki.analyseModell (Default claude-sonnet-5) statt des
+// Rennleitung-Modells (claude-haiku-4-5) -- unabhaengig upgradebar, siehe settings.js. Per
+// optionalem modell-Parameter vom Admin-Dashboard ueberschreibbar (systemSettings.analyse).
 
 import { Settings } from '../../settings.js';
 import { logger, stripFormatting } from '../utilities.js';
@@ -43,7 +42,7 @@ const FALLBACK_SATZ = 'Zu diesem Abschnitt konnte kein geprüfter Text erzeugt w
  * @param {string} kategorie z.B. 'formkurven', 'aufsteiger', ... (nur fuer Logging/Prompt-Kontext)
  * @param {*} daten die verfuegbaren Kennzahlen dieser Kategorie (bereits entpacktes `.daten`-Feld)
  * @param {Set<string>} alleBekanntenNamen alle jemals bekannten Spielernamen (Namens-Guard)
- * @param {string} [modell] Override ab AP16b (Admin-Dashboard); Default Settings.ki.analyseModell
+ * @param {string} [modell] Override vom Admin-Dashboard; Default Settings.ki.analyseModell
  * @returns {Promise<{text: string|null, status: 'ok'|'teilweise'|'kiFehler'}>}
  */
 export async function erzeugeAbschnittsText(kategorie, daten, alleBekanntenNamen, modell = Settings.ki.analyseModell) {
@@ -81,7 +80,7 @@ export async function erzeugeAbschnittsText(kategorie, daten, alleBekanntenNamen
  * nutzt die Whitelist ueber das komplette kennzahlen-Objekt (alle Kategorien gemeinsam).
  * @param {object} kennzahlen Rueckgabe von berechneWochenKennzahlen()/berechneMonatsKennzahlen() (Wrapper-Objekte mit .daten)
  * @param {Set<string>} alleBekanntenNamen
- * @param {string} [modell] Override ab AP16b (Admin-Dashboard); Default Settings.ki.analyseModell
+ * @param {string} [modell] Override vom Admin-Dashboard; Default Settings.ki.analyseModell
  * @returns {Promise<{text: string|null, status: 'ok'|'teilweise'|'kiFehler'}>}
  */
 export async function erzeugeGesamtzusammenfassung(kennzahlen, alleBekanntenNamen, modell = Settings.ki.analyseModell) {

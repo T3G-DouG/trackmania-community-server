@@ -1,9 +1,9 @@
-// dossier.js — AP15g: baut ein deterministisches Spieler-Dossier (Collection `spielerDossiers`)
-// aus den bereits vorhandenen Analyse-Rohdaten (datenLaden.js) + firstSeen (AP15a). PURE (kein
+// dossier.js — baut ein deterministisches Spieler-Dossier (Collection `spielerDossiers`)
+// aus den bereits vorhandenen Analyse-Rohdaten (datenLaden.js) + firstSeen. PURE (kein
 // DB-Zugriff, kein Date.now()/Math.random(), Muster wie kennzahlen.js/guards.js) -- deshalb OHNE
 // `aktualisiertAm`, das setzt der Aufrufer (dossierRefresh.js) beim Schreiben. KEINE KI-Aufrufe --
 // reine deterministische Zusammenfassung bestehender kennzahlen.js-Analysen fuer EINEN Spieler.
-// Dient als Kontext-Grundlage fuer die menschlichere Rennleitung (AP15h, dossierKontext.js).
+// Dient als Kontext-Grundlage fuer die menschlichere Rennleitung (dossierKontext.js).
 
 import {
     nurEchteMonateSortiert,
@@ -69,7 +69,7 @@ export function baueDossier(login, daten) {
         ? Math.round((eigeneKarma.reduce((s, k) => s + k.score, 0) / eigeneKarma.length) * 10) / 10
         : null;
 
-    // Comeback-Erkennung kommt aus derselben Funktion wie die Anomalien-Kennzahl (AP15b) --
+    // Comeback-Erkennung kommt aus derselben Funktion wie die Anomalien-Kennzahl --
     // hier interessiert nur der Comeback-Teil, nicht ungewoehnlicheMonate (kein Dossier-Feld dafuer).
     const anomalien = berechneAnomalien(formkurvenAlle, echteMonate);
     const comeback = (anomalien.daten?.comebacks ?? []).find((c) => c.login === login);

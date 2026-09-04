@@ -17,7 +17,7 @@ const API_VERSION = '2023-06-01';
 const TIMEOUT_MS = 15000;
 
 /**
- * Optional registrierter Tracker fuer das kiNutzung-Tracking (AP15c). kiClient bleibt
+ * Optional registrierter Tracker fuer das kiNutzung-Tracking. kiClient bleibt
  * bewusst DB-frei -- die eigentliche DB-Schreiblogik lebt in kiNutzungTracker.js, das
  * sich hier per setzeNutzungsTracker() einhaengt (Muster wie holeEinstellungen()/
  * setzeEinstellungen() in laufzeitEinstellungen.js: dünner Consumer, DB-Zugriff woanders).
@@ -60,7 +60,7 @@ function meldeNutzung(feature, inputTokens, outputTokens) {
  *   unverändert; kiEnrich.js übergibt bewusst einen kürzeren Wert, da dort der Sendevorgang
  *   bestehender Nachrichten nicht spürbar verzögert werden darf)
  * @param {{modell?: string, feature?: string}} [opts] `modell`: Override statt Settings.ki.modell
- *   (z.B. aus laufzeitEinstellungen.js -- Admin-Dashboard AP16). `feature`: Kennung fuer das
+ *   (z.B. aus laufzeitEinstellungen.js -- Admin-Dashboard). `feature`: Kennung fuer das
  *   kiNutzung-Tracking (z.B. 'rennleitung'/'nachrichtenKi'/'analyse') -- ohne Angabe wird nichts
  *   getrackt (z.B. wenn kein Tracker registriert ist, etwa in isolierten Testskripten).
  * @returns {Promise<string|null>} generierter Text oder null

@@ -15,13 +15,13 @@ const KOMMANDO_TICK_MS = 10 * 1000;
 /** Maximales Alter eines Befehls, bevor er noch ausgefuehrt wird. Ein Dashboard-Klick soll sich
  * sofort anfuehlen -- alles Aeltere ist mit hoher Wahrscheinlichkeit ein Leichen-Eintrag aus einer
  * Testsitzung (Controller war beim Klick nicht erreichbar) und wuerde sonst beim naechsten
- * Controller-Boot ueberraschend nachgetriggert (siehe SYSTEM.md, Nebenbefund AP17-Boot-Smoke-Test). */
+ * Controller-Boot ueberraschend nachgetriggert. */
 const KOMMANDO_MAX_ALTER_MS = 5 * 60 * 1000;
 
 /**
- * AP16c: fuehrt Serversteuerungs-Befehle aus, die bisher nur als In-Game-/Telegram-`/admin`-
+ * Fuehrt Serversteuerungs-Befehle aus, die bisher nur als In-Game-/Telegram-`/admin`-
  * Befehle existierten (admin.js, jukebox.js), jetzt auch vom Website-Dashboard aus -- ueber
- * denselben adminKommandos-Mechanismus wie der Analyse-Trigger (AP16b, Muster:
+ * denselben adminKommandos-Mechanismus wie der Analyse-Trigger (Muster:
  * controller/plugins/analyse.js pruefeAdminKommando()). Bewusst ein EIGENES Plugin statt
  * Erweiterung von admin.js: dessen Methoden sind fest an einen echten eingeloggten Spieler
  * (login/getPlayer(login).name) gebunden, ein Dashboard-Trigger hat keinen.

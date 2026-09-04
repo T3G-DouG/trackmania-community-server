@@ -44,7 +44,7 @@ export class ForceModsPlugin {
 
         nc.registerAdminCommand(new Classes.ChatCommand('modserzwingen', this.forceModsCommand, 'Aktiviert, deaktiviert oder ändert erzwungene Mods auf dem Server', this.name));
 
-        // AP17g: Menue-Eintraege -- nur der feste Schluesselwort-Teil, die Mod-URL-Freitext-
+        // Menue-Eintraege -- nur der feste Schluesselwort-Teil, die Mod-URL-Freitext-
         // Ausnahme bleibt bewusst nur Chat-Befehl (Muster wie //hinzufuegen, siehe admin.js).
         const modsEintrag = (label, op) => new Classes.MenuEintrag(
             'Admin · Server', label, kodiereAktion(AKTION_PRAEFIX, op), { adminOnly: true, pluginName: this.name }

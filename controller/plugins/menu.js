@@ -11,7 +11,7 @@ const EINSTIEG_AKTION = kodiereAktion(AKTION_PRAEFIX, 'offen');
 const SCHLIESSEN_AKTION = kodiereAktion(AKTION_PRAEFIX, 'schliessen');
 
 /**
- * Hauptmenue-Plugin (AP17c): dauerhaft eingeblendeter Einstiegs-Knopf + grafisches
+ * Hauptmenue-Plugin: dauerhaft eingeblendeter Einstiegs-Knopf + grafisches
  * Kategorie-Menue, das alle bei nextcontrol.menuEintraege registrierten Befehle anderer
  * Plugins auflistet. Zeichnet selbst KEINE Befehlslogik -- ist reine Navigations-Huelle,
  * jedes Plugin behandelt seine eigene Menue-Aktion weiterhin in seinem eigenen

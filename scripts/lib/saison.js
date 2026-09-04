@@ -2,8 +2,7 @@
 // (z. B. "season:Fall2020"), die aus alten TM2020-Kampagnendateien stammen
 // und einmalig von scripts/migrate.js erzeugt wurden. Nach dem Cutover
 // entstehen keine neuen Season-Token mehr (scripts/monatswechsel.js liefert
-// ausschließlich "YYYY-MM"). Siehe docs/SYSTEM.md, Abschnitt "Season-
-// Sonderfall". PHP-Zwilling: website/lib/saison.php.
+// ausschließlich "YYYY-MM"). PHP-Zwilling: website/lib/saison.php.
 
 const SAISON_MONAT = { Winter: '12', Spring: '03', Summer: '06', Fall: '09' };
 const SAISON_NAME = { Winter: 'Winter', Spring: 'Frühling', Summer: 'Sommer', Fall: 'Herbst' };

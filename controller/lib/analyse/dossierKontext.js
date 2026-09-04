@@ -1,4 +1,4 @@
-// dossierKontext.js — AP15h: baut aus einem spielerDossiers-Dokument (AP15g) einen kompakten
+// dossierKontext.js — baut aus einem spielerDossiers-Dokument einen kompakten
 // Faktenblock (≤ ~500 Zeichen) fuer die Rennleitung. PURE (kein DB-Zugriff, kein Date.now()) --
 // der Aufrufer laedt das Dossier-Dokument bereits selbst (rennleitung.js). Liefert bei fehlendem
 // oder inhaltlich leerem Dossier bewusst einen leeren String zurueck -- keine erfundenen Fakten,

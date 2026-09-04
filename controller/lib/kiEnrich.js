@@ -17,7 +17,7 @@ import { holeEinstellungen, setzeEinstellungen } from './laufzeitEinstellungen.j
  * (Settings.ki.apiKey/modell) und den Low-Level-Client kiClient.js.
  */
 
-// Ein/Aus, Modell und Stundendeckel kommen seit AP16 (Admin-Dashboard) aus den Laufzeit-
+// Ein/Aus, Modell und Stundendeckel kommen aus den Laufzeit-
 // Einstellungen (holeEinstellungen().nachrichtenKi, siehe laufzeitEinstellungen.js) --
 // unabhängig von der Rennleitung (eigener Bereich im systemSettings-Dokument). Die dortigen
 // GRENZEN sind die harten Code-Obergrenzen, die auch das Dashboard nie überschreiten kann.

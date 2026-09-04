@@ -1,7 +1,7 @@
 /**
  * Reine Hilfsfunktionen zur Ermittlung eines "Geschmacksprofils" aus Karma-Bewertungen,
  * zur Bewertung von Map-Kandidaten anhand dieses Profils und zur Erzeugung einer
- * automatischen Kurzbeschreibung je Strecke (fuers Telegram-Voting, AP13a).
+ * automatischen Kurzbeschreibung je Strecke (fuers Telegram-Voting).
  *
  * Bewusst ohne Abhaengigkeit zu nextcontrol.js/Mongo gehalten (wie lib/mapVoting.js),
  * damit sich die Logik ohne laufenden Server/DB testen laesst.

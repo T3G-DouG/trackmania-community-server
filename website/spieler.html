@@ -143,7 +143,7 @@
 <script src="assets/app.js?v=9"></script>
 <script>
 // Zwei separate Sprite-Dateien statt eines gemeinsam neu berechneten Rasters -- eine
-// Rastergroessenaenderung wuerde ALLE bestehenden Positionen verschieben (siehe docs/CUP-PLAN.md),
+// Rastergroessenaenderung wuerde ALLE bestehenden Positionen verschieben,
 // das 3x3-Sprite der 9 neuen Abzeichen bekommt daher eine eigene, unabhaengige Positionstabelle
 // statt das bestehende 6x3-Sprite umzubauen. Beide Dateien sind 1408x768px -- bei einem 3x3-Raster
 // ergeben sich daraus WEIT-RECHTECKIGE Zellen (469x256, Seitenverhaeltnis 1.83:1), nicht quadratische
@@ -169,7 +169,7 @@ const ABZEICHEN_ICON_POSITION = {
 
     // versatzX/versatzY: die 9 Icons im 3x3-Sprite sitzen NICHT exakt in der geometrischen
     // Zellenmitte (das Layout hat ungleiche Aussen-/Innenabstaende) -- per Canvas-Pixelanalyse
-    // (dunkle Medaillon-Flaeche je Zelle, siehe docs/SYSTEM.md) gemessene Abweichung von der
+    // (dunkle Medaillon-Flaeche je Zelle) gemessene Abweichung von der
     // Zellenmitte in Original-Bildpixeln, wird in baueSpriteStyle() vor der Skalierung addiert.
     kellerkind: { sprite: 'zwei', spalte: 0, zeile: 0, versatzX: 85, versatzY: 25 },
     vierjahreszeiten: { sprite: 'zwei', spalte: 1, zeile: 0, versatzX: -3, versatzY: 25 },

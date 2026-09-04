@@ -16,6 +16,9 @@ backups/
 # Monatliche Eingabedatei (Betreiber-Input, siehe naechster-monat.example.json)
 scripts/naechster-monat.json
 
+# Generierter Bericht von scripts/migrate.js
+migration-ambiguities.md
+
 # Betriebssystem
 Thumbs.db
 desktop.ini

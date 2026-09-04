@@ -82,7 +82,7 @@ export class CupPlugin {
     /**
      * Sucht das juengste noch nicht abgeschlossene Turnier und cached es in
      * this.aktuellesTurnier. Wird vor jeder Aktion neu aufgerufen (nicht nur beim
-     * Boot), damit ein per cup-anlegen.js (AP14e) neu angelegtes Turnier automatisch
+     * Boot), damit ein per cup-anlegen.js neu angelegtes Turnier automatisch
      * gefunden wird, ohne den Controller neu starten zu muessen.
      * @private
      */
@@ -294,7 +294,7 @@ export class CupPlugin {
     }
 
     /**
-     * Admin-Bruecke Haupt-Controller -> Cup-Controller (AP14e, Telegram-seitig noch
+     * Admin-Bruecke Haupt-Controller -> Cup-Controller (Telegram-seitig noch
      * nicht gebaut): identisches Muster wie serverSteuerung.js/analyse.js
      * (Collection `cupKommandos`, atomare Beanspruchung ueber `verarbeitetAm:null`).
      * @private
@@ -355,9 +355,8 @@ export class CupPlugin {
     }
 
     /**
-     * Schreibt den Live-Snapshot fuer die Website (Muster serverStatus/liveStatus.js)
-     * -- AP14f (Website) ist noch nicht gebaut, die Collection wird aber bereits jetzt
-     * konsistent gepflegt, damit AP14f rein additiv bleibt.
+     * Schreibt den Live-Snapshot fuer die Website (Muster serverStatus/liveStatus.js) --
+     * die Collection wird unabhaengig davon konsistent gepflegt.
      * @private
      */
     async sendeCupStatusSnapshot() {
@@ -414,9 +413,9 @@ export class CupPlugin {
     }
 
     /**
-     * AP14a-Fallthrough liefert hier jeden nicht speziell behandelten ModeScript-
+     * Der generische ModeScript-Fallthrough liefert hier jeden nicht speziell behandelten
      * Callback. Autoritative Rundenergebnis-Quelle ist `Trackmania.Scores` (Payload-
-     * Struktur live verifiziert, AP14i-Generalprobe) -- players[].name traegt den
+     * Struktur live verifiziert) -- players[].name traegt den
      * klassischen Login, players[].login ist eine anonymisierte WebServices-ID (siehe
      * Kommentar unten). Trotzdem robust mit Fallback auf die per onWaypoint gesammelte
      * Finish-Reihenfolge, falls ein Spieler ueber den Namen nicht zugeordnet werden kann.
@@ -433,7 +432,7 @@ export class CupPlugin {
         const aktive = this.aktuellesTurnier.verlauf.aktivTeilnehmer;
         let reihenfolge = [];
 
-        // WICHTIG (live per Debug-Log verifiziert, AP14i): players[].login ist eine
+        // WICHTIG (live per Debug-Log verifiziert): players[].login ist eine
         // anonymisierte WebServices-ID, NICHT der klassische Dedicated-Server-Login,
         // den aktivTeilnehmer/onWaypoint/der Rest dieser Datei verwenden. Der klassische
         // Login steckt stattdessen in players[].name (ggf. mit Formatierungscodes,

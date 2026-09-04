@@ -1,11 +1,11 @@
-// kennzahlen.js — AP15b: Kennzahlen-Bibliothek fuer die Datenanalyse-Erweiterung
-// (docs/KI-ANALYSE-PLAN.md). PURE Funktionen: kein DB-Zugriff, kein nextcontrol.js-Import,
+// kennzahlen.js — Kennzahlen-Bibliothek fuer die Datenanalyse-Erweiterung.
+// PURE Funktionen: kein DB-Zugriff, kein nextcontrol.js-Import,
 // kein Datum.now()/Math.random() -- bei gleicher Eingabe immer byte-identische Ausgabe
-// (Determinismus ist hier Pflicht, siehe Plan: "KI bekommt fertige Kennzahlen als Daten").
+// (Determinismus ist hier Pflicht: "KI bekommt fertige Kennzahlen als Daten").
 //
 // Jede Analyse liefert dasselbe Format: { verfuegbar: boolean, grund: string|null, daten }.
 // `grund` erklaert eine fehlende Datenbasis (Gating-Muster wie website/assets/statsview.js) --
-// die aufrufende Seite (spaeter analysen.html/AP15f) kann so einheitlich "Daten erst ab ..."
+// die aufrufende Seite (spaeter analysen.html) kann so einheitlich "Daten erst ab ..."
 // anzeigen, ohne pro Analyse eigene Sonderfaelle zu brauchen.
 //
 // Season-Token ("season:Fall2020", siehe scripts/lib/saison.js) werden aus allen
@@ -303,7 +303,7 @@ export function berechneRivalitaeten(echteMonateChronologisch, maxAbstand = 300,
  * Auffaellige Monate (z-Score der eigenen Punkte vs. eigener Historie) + Comebacks
  * (Rueckkehr nach einer Pause von mindestens `mindestPauseMonate` Monaten ohne Eintrag).
  * "Ungewoehnliche Uhrzeiten" (spielerSessions) sind bewusst NOCH NICHT Teil dieser Funktion --
- * die Datenbasis (AP15a) ist zu jung fuer eine sinnvolle Auswertung (siehe KI-ANALYSE-PLAN.md).
+ * die Datenbasis ist noch zu jung fuer eine sinnvolle Auswertung.
  * @param {{daten: Array|null}} formkurvenErgebnis Rueckgabe von berechneFormkurven()
  * @param {Array<{monat:string, eintraege:Array}>} echteMonateChronologisch
  */
@@ -422,7 +422,7 @@ export function berechneNaheDuelle(liveRanking, maxAbstand = 300) {
 }
 
 /**
- * Woechentliche Kennzahlen (AP17-Nachtrag): bewusst NUR Signale, die sich innerhalb einer
+ * Woechentliche Kennzahlen: bewusst NUR Signale, die sich innerhalb einer
  * Woche tatsaechlich veraendern -- im Gegensatz zu den vorher hier mitgelaufenen
  * Monats-Kennzahlen (Formkurven/Aktivitaet/Dominanz/Zeiteinsatz/Rivalitaeten/Anomalien), die
  * bis zum naechsten Monatswechsel byte-identisch blieben und den woechentlichen KI-Bericht
@@ -472,7 +472,7 @@ export function berechneWochenKennzahlen({ monthlyRankings, records, tagesberich
 }
 
 /**
- * Monatliche Kennzahlen (AP17-Nachtrag, vorher Teil von berechneAlleKennzahlen): der
+ * Monatliche Kennzahlen (vorher Teil von berechneAlleKennzahlen): der
  * historische Rueckblick ueber die vergangenen Monate und ihre Veraenderungen -- laeuft nur
  * einmal im Monat (siehe automatikTakt.js/analyse.js), direkt nachdem ein neuer Monat
  * archiviert wurde, und vergleicht deshalb bewusst immer zwei ARCHIVIERTE Monate.

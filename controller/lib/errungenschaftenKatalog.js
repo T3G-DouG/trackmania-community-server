@@ -1,4 +1,4 @@
-// errungenschaftenKatalog.js -- Reine Daten, KEINE Imports (siehe CLAUDE.md-Testbarkeitsregel:
+// errungenschaftenKatalog.js -- Reine Daten, KEINE Imports (Testbarkeitsregel:
 // controller/plugins/*.js und nextcontrol.js duerfen von Testskripten niemals importiert werden;
 // dieses Modul ist bewusst frei von jeglichen Abhaengigkeiten, damit sowohl die Logik-Tests als
 // auch website/api.php (per Mongo-Spiegelung, siehe errungenschaften.js) es gefahrlos nutzen koennen).

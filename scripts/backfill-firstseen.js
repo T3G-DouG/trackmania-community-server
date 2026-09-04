@@ -1,6 +1,6 @@
 // backfill-firstseen.js — Einmaliges Nachrüst-Skript: setzt players.firstSeen
 // für Bestandsspieler, die vor der Einführung der Erstbesuch-Erkennung
-// (controller/plugins/join.js, AP15a) schon existierten.
+// (controller/plugins/join.js) schon existierten.
 //
 // Ab jetzt setzt join.js firstSeen selbst (per $setOnInsert bei jedem neuen
 // Login). Für alle vorher schon vorhandenen players-Dokumente fehlt das Feld

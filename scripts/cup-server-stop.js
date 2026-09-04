@@ -6,7 +6,7 @@
 //
 // Nutzung:
 //   node cup-server-stop.js --xmlrpc-port 5556   (Test: Trainings-Server-Rolle)
-//   node cup-server-stop.js --xmlrpc-port 5557   (echt, erst ab AP14j)
+//   node cup-server-stop.js --xmlrpc-port 5557   (echt, erst nach expliziter Freigabe)
 //   node cup-server-stop.js                      (Default: 5557)
 
 import gbxremote from 'gbxremote';

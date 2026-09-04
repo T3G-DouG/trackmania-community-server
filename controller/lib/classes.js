@@ -196,7 +196,7 @@ export class PlayerResults {
 }
 
 /**
- * ManiaLink-Menue-Eintrag (AP17c+): rein deklarativ fuer die Anzeige im Hauptmenue
+ * ManiaLink-Menue-Eintrag: rein deklarativ fuer die Anzeige im Hauptmenue
  * (controller/plugins/menu.js) -- der Klick selbst laeuft NICHT ueber diese Klasse,
  * sondern wie jede andere ManiaLink-Aktion durch den bestehenden onManialinkPageAnswer-
  * Rundruf an alle Plugins (jedes Plugin erkennt/behandelt weiterhin nur seine eigene

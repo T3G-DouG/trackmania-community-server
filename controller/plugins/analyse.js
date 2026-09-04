@@ -15,7 +15,7 @@ const AKTION_PRAEFIX = 'analyse';
 const STUNDEN_TICK_MS = 60 * 60 * 1000;
 
 /**
- * Wie oft auf einen manuellen Website-Trigger (adminKommandos, AP16b) geprueft wird --
+ * Wie oft auf einen manuellen Website-Trigger (adminKommandos) geprueft wird --
  * bewusst kurz getaktet (Muster: Ambient-Tick der Rennleitung), damit der "Jetzt ausloesen"-
  * Knopf im Dashboard sich nicht wie ein stiller No-op anfuehlt. Der eigentliche Budget-Guard
  * (1 Lauf/24h) sitzt weiterhin in automatikTakt.js und begrenzt die tatsaechlichen Laeufe --
@@ -24,7 +24,7 @@ const STUNDEN_TICK_MS = 60 * 60 * 1000;
 const KOMMANDO_TICK_MS = 60 * 1000;
 
 /**
- * Automatisiert den woechentlichen KI-Analyse-Lauf (AP15d: controller/lib/analyse/berichtLauf.js)
+ * Automatisiert den woechentlichen KI-Analyse-Lauf (controller/lib/analyse/berichtLauf.js)
  * und verschickt den Telegram-Kompaktbericht an die Gruppe. Bewusst duenn: die gesamte
  * Lauf-Logik (laden/rechnen/texten/guarden) steckt in controller/lib/analyse/, dieses Plugin
  * ist nur die Zeitsteuerung (Sonntagabend) + der manuelle Admin-Trigger.
@@ -55,7 +55,7 @@ export class Analyse {
             'Analyse-Lauf steuern: /admin analyse jetzt [woche|monat]|status', this.name
         ));
 
-        // AP17d: Menue-Eintraege
+        // Menue-Eintraege
         const eintrag = (label, ...aktionsTeile) => new Classes.MenuEintrag(
             'Admin · KI', label, kodiereAktion(AKTION_PRAEFIX, ...aktionsTeile), { adminOnly: true, pluginName: this.name }
         );
@@ -69,7 +69,7 @@ export class Analyse {
         // einer Stunde auf den ersten Tick warten wuerde.
         setTimeout(() => this.stundenTick(), 5000);
 
-        // Eigener, kurz getakteter Timer fuer den manuellen Website-Trigger (AP16b) -- siehe
+        // Eigener, kurz getakteter Timer fuer den manuellen Website-Trigger -- siehe
         // KOMMANDO_TICK_MS-Kommentar oben.
         this.kommandoTimer = setInterval(
             () => this.pruefeAdminKommando().catch((e) => logger('er', `Analyse: Tick-Fehler (Dashboard-Trigger): ${e.message}`)),
@@ -88,8 +88,8 @@ export class Analyse {
     /**
      * Stuendlicher Tick: drei unabhaengige, voneinander getrennt abgesicherte Pruefungen
      * (ein Fehler in einer darf die anderen nicht verhindern) -- woechentlicher UND
-     * monatlicher Analyse-Lauf (AP15d/e, AP17-Nachtrag: siehe kennzahlen.js fuer den
-     * Unterschied) sowie der naechtliche Dossier-Refresh (AP15g).
+     * monatlicher Analyse-Lauf (siehe kennzahlen.js fuer den
+     * Unterschied) sowie der naechtliche Dossier-Refresh.
      * @private
      */
     stundenTick() {
@@ -100,7 +100,7 @@ export class Analyse {
 
     /**
      * Aktualisiert bei Bedarf (~04:00, DB-basierter Guard, siehe dossierRefresh.js) alle
-     * Spieler-Dossiers (AP15g). Keine KI-Aufrufe, rein deterministisch -- daher kein eigener
+     * Spieler-Dossiers. Keine KI-Aufrufe, rein deterministisch -- daher kein eigener
      * Budget-Guard noetig, nur der Zeitfenster-Check in istNaechtlicherRefreshFaellig().
      * @private
      */
@@ -128,13 +128,13 @@ export class Analyse {
      * globaler unhandledRejection-Handler im Controller, siehe errungenschaften.js).
      * @param {'automatisch'|'manuell'} ausloeser
      * @param {String} [angefordertVon] Login des Admins bei manuellem Trigger, nur fuers Logging
-     * @param {'woche'|'monat'} [berichtTyp] AP17-Nachtrag: welches Kennzahlen-Set (siehe kennzahlen.js)
+     * @param {'woche'|'monat'} [berichtTyp] welches Kennzahlen-Set (siehe kennzahlen.js)
      * @returns {Promise<{gestartet: boolean, grund?: string, naechsterErlaubterZeitpunkt?: Date, erfolgreich?: boolean, dokument?: object}>}
      */
     async pruefeUndFuehreAus(ausloeser, angefordertVon, berichtTyp = 'woche') {
         if (this.laeuftGerade) return { gestartet: false, grund: 'laeuftBereits' };
 
-        // AP16b: Zeitplan/Modell/Telegram-Toggle kommen aus dem Admin-Dashboard (systemSettings.analyse),
+        // Zeitplan/Modell/Telegram-Toggle kommen aus dem Admin-Dashboard (systemSettings.analyse),
         // holeEinstellungen() liefert ohne Konfiguration exakt die bisherigen Festwerte (So 19:30,
         // Settings.ki.analyseModell, Telegram an) -- wirft nie, siehe laufzeitEinstellungen.js.
         // Der Zeitplan gilt nur fuer den Wochenbericht -- der Monatsbericht hat einen festen,
@@ -195,8 +195,8 @@ export class Analyse {
     }
 
     /**
-     * Prueft auf einen ausstehenden manuellen Trigger aus dem Admin-Dashboard (AP16b,
-     * Collection adminKommandos, {typ:'analyseJetzt', erledigtAm:null}) und fuehrt ihn ueber
+     * Prueft auf einen ausstehenden manuellen Trigger aus dem Admin-Dashboard
+     * (Collection adminKommandos, {typ:'analyseJetzt', erledigtAm:null}) und fuehrt ihn ueber
      * den regulaeren manuellen Pfad aus (identischer Budget-Guard wie /admin analyse jetzt).
      * Markiert den Eintrag ATOMAR ueber den updateOne-Filter erledigtAm:null als bearbeitet,
      * BEVOR der Lauf startet -- ein ueberlappender Tick (z.B. bei sehr langsamer DB) kann den

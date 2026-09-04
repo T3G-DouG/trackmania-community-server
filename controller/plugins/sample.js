@@ -189,7 +189,7 @@ export class SamplePlugin {
 
     /**
      * Function run, when a gamemode script triggers a callback not otherwise handled
-     * by nextcontrol.js (AP14a: generic fallthrough, e.g. Trackmania.Scores)
+     * by nextcontrol.js (generic fallthrough, e.g. Trackmania.Scores)
      * @param {String} method Name of the ModeScript event (e.g. "Trackmania.Scores")
      * @param {*} params Parsed JSON payload of the callback, if any
      */

@@ -10,7 +10,7 @@ const MAX_EVENTS = 300;
  * @param {import('../nextcontrol.js').NextControl} nextcontrol
  * @param {string} typ Kurzer Kategorie-Schlüssel, z.B. 'verbindung', 'strecke', 'rekord', 'admin', 'voting'
  * @param {string} text Bereits klartext-formatierter, deutscher Anzeigetext (keine Trackmania-Farbcodes)
- * @param {string|null} [login] Optionaler Login, dem das Ereignis zuzuordnen ist (z.B. 'erstbesuch', AP15h Rennleitung-Kontext).
+ * @param {string|null} [login] Optionaler Login, dem das Ereignis zuzuordnen ist (z.B. 'erstbesuch', Rennleitung-Kontext).
  *   Wird NIE an api.php durchgereicht (dortiges Feld-Whitelisting gibt nur typ/text/zeit aus) --
  *   ausschließlich fuer serverseitige Weiterverarbeitung (z.B. Dossier-Lookup).
  */

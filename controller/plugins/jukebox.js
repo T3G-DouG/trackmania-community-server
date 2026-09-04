@@ -26,7 +26,7 @@ export class JukeboxPlugin {
         nc.registerChatCommand(new Classes.ChatCommand('jukebox', this.jukeboxCommand, 'Reiht eine Karte in die Jukebox ein.', this.name));
         nc.registerAdminCommand(new Classes.ChatCommand('jukebox', this.jukeboxAdmin, 'Admin-Jukebox-Kommando.', this.name));
 
-        // AP17f: Menue-Eintraege -- "Karte in Jukebox einreihen" bewusst NICHT im Menue
+        // Menue-Eintraege -- "Karte in Jukebox einreihen" bewusst NICHT im Menue
         // (Betreiber-Wunsch 2026-09-01), /jukebox <id> bleibt Chat-Befehl. Nur die
         // Admin-Aktion "Jukebox leeren" bleibt im Menue.
         nc.registerMenuEintrag(new Classes.MenuEintrag(

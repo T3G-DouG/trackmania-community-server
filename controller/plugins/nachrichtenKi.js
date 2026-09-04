@@ -41,7 +41,7 @@ export class NachrichtenKi {
             'Schaltet die KI-Umformulierung von Server-Nachrichten ein/aus: /admin nachrichtenki an|aus|status', this.name
         ));
 
-        // AP17d: Menue-Eintraege
+        // Menue-Eintraege
         const eintrag = (label, wert) => new Classes.MenuEintrag(
             'Admin · KI', label, kodiereAktion(AKTION_PRAEFIX, wert), { adminOnly: true, pluginName: this.name }
         );

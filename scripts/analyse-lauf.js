@@ -1,4 +1,4 @@
-// analyse-lauf.js -- AP15d: fuehrt einen Analyse-Lauf durch (laden -> rechnen -> texten
+// analyse-lauf.js -- fuehrt einen Analyse-Lauf durch (laden -> rechnen -> texten
 // mit Zahlen-/Namens-Guard -> kiAnalysen-Insert) und verschickt optional den
 // Telegram-Kompaktbericht.
 //

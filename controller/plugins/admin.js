@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import got from 'got';
 
 const AKTION_PRAEFIX = 'admin';
-/** Deckelt die "Karte entfernen"-Liste im Menue (keine Seitenumbruch-UI in AP17f-Erstfassung). */
+/** Deckelt die "Karte entfernen"-Liste im Menue (keine Seitenumbruch-UI in der Erstfassung). */
 const ENTFERNEN_LISTE_MAX = 20;
 
 /**
@@ -62,9 +62,9 @@ export class AdminSuite {
         nextcontrol.registerAdminCommand(new Classes.ChatCommand('verlaengern', this.admin_extend, 'Verlängert die Spielzeit um einen angegebenen Wert (Standard: 300s)', this.name));
         nextcontrol.registerAdminCommand(new Classes.ChatCommand('modus', this.admin_mode, 'Verschiedene Kommandos zum Bearbeiten der MatchSettings', this.name));
 
-        // AP17e/f/g: Menue-Eintraege (alle admin-only). "//hinzufuegen <link>" bewusst NICHT
+        // Menue-Eintraege (alle admin-only). "//hinzufuegen <link>" bewusst NICHT
         // im Menue (Tippfehler-Risiko bei langen TMX-URLs/Pfaden zu hoch fuer ein <entry>-Feld,
-        // bleibt dauerhaft nur Chat-Befehl -- siehe Plan AP17h). "//modus set <key> <value>"
+        // bleibt dauerhaft nur Chat-Befehl). "//modus set <key> <value>"
         // ebenso bewusst ausgelassen (offenes Key/Value-Editieren, geringer Nutzen fuer den
         // Aufwand einer 2-Eingabefeld-Form in der Erstfassung).
         const admin = (label, ...aktionsTeile) => new Classes.MenuEintrag(

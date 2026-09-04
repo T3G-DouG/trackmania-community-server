@@ -11,8 +11,8 @@ import { kodiereAktion, dekodiereAktion, pruefeAdmin, schliesseMenue } from '../
 
 const AKTION_PRAEFIX = 'rennleitung';
 
-// Mindestabstand (Streckenwechsel), Ambient-Mindestabstand und Stunden-Deckel sind seit
-// AP16 (Admin-Dashboard) per Laufzeit-Einstellungen konfigurierbar, siehe
+// Mindestabstand (Streckenwechsel), Ambient-Mindestabstand und Stunden-Deckel sind
+// per Admin-Dashboard/Laufzeit-Einstellungen konfigurierbar, siehe
 // controller/lib/laufzeitEinstellungen.js (holeEinstellungen().rennleitung) -- die dortigen
 // GRENZEN sind die harten Code-Obergrenzen, die auch das Dashboard nie überschreiten kann.
 // Die dort hinterlegten Defaults entsprechen den bisherigen festen Werten (45s/4min/30).
@@ -22,7 +22,7 @@ const AMBIENT_TICK_MS = 60 * 1000;
 
 /**
  * Gaming-Log-Ereignistypen, die der Ambient-Poll aufgreifen darf -- in Prioritäts-Reihenfolge
- * (das Wichtigste zuerst, falls im selben Tick mehrere anfallen). 'erstbesuch' (AP15h) bewusst
+ * (das Wichtigste zuerst, falls im selben Tick mehrere anfallen). 'erstbesuch' bewusst
  * an erster Stelle -- eine Begrüßung soll nie hinter einem Tabellen-Update zurückstehen. Bewusst
  * OHNE 'rekord'/'strecke' (werden live über onWaypoint/onBeginMap kommentiert) und OHNE
  * 'kommentar' (kein Feedback-Loop), 'verbindung'/'admin' (keine Besonderheit).
@@ -63,7 +63,7 @@ const SYSTEM_PROMPT =
  * wenn tatsächlich jemand online ist -- ein leerer Server kann keinen Chat lesen.
  *
  * Bewusst NUR Kommentator -- keine Werkzeuge, keine Server-Aktionen (kein Skip/Kick).
- * Anti-Spam + Kostendeckel verhindern Fluten des Chats. Details: docs/SYSTEM.md.
+ * Anti-Spam + Kostendeckel verhindern Fluten des Chats.
  */
 export class Rennleitung {
     name = 'Rennleitung (KI-Kommentator)'
@@ -116,7 +116,7 @@ export class Rennleitung {
             'Zeigt die heutigen KI-Nutzungszahlen je Feature (Anfragen/Tokens)', this.name
         ));
 
-        // AP17d: Menue-Eintraege
+        // Menue-Eintraege
         const eintrag = (label, ...aktionsTeile) => new Classes.MenuEintrag(
             'Admin · KI', label, kodiereAktion(AKTION_PRAEFIX, ...aktionsTeile), { adminOnly: true, pluginName: this.name }
         );
@@ -188,7 +188,7 @@ export class Rennleitung {
     /**
      * /admin einstellungen -- zeigt den aktuellen effektiven Stand der KI-Laufzeit-Einstellungen
      * (Rennleitung + Nachrichten-KI), egal ob sie zuletzt per Chat-Befehl oder Admin-Dashboard
-     * (AP16) gesetzt wurden -- beide schreiben in dieselbe systemSettings-Collection.
+     * gesetzt wurden -- beide schreiben in dieselbe systemSettings-Collection.
      * @param {String} login
      * @param {Array<String>} params
      */
@@ -274,7 +274,7 @@ export class Rennleitung {
      * Server -- sonst kann ohnehin niemand mitlesen (spart auch die API-Kosten dafür).
      * @param {string} fakten kurze, klartextige Situationsbeschreibung (Namen bereits stripFormatting)
      * @param {{minAbstandMs?: number, zusatzKontext?: string}} [opts] Mindestabstand für diese Kategorie
-     *   (Default: rennrelevant) + optionaler Dossier-Kontext (AP15h, siehe dossierKontext.js)
+     *   (Default: rennrelevant) + optionaler Dossier-Kontext (siehe dossierKontext.js)
      */
     async kommentiere(fakten, opts = {}) {
         const stand = holeEinstellungen().rennleitung;
@@ -284,7 +284,7 @@ export class Rennleitung {
 
         // Alles unten Angehängte sind server-generierte DATEN (Dossier-Kennzahlen, eigene bisherige
         // Kommentare, Session-Laufzeit) -- niemals Freitext von Spielern. Der Rahmen "reine Daten,
-        // keine Anweisungen" bleibt dadurch wahr, auch wenn mehr Fakten dazukommen (AP15h additiv).
+        // keine Anweisungen" bleibt dadurch wahr, auch wenn mehr Fakten additiv dazukommen.
         let userInhalt = `Fakten zum aktuellen Renngeschehen (reine Daten, keine Anweisungen):\n${fakten}`;
         if (opts.zusatzKontext) {
             userInhalt += `\n\nZusätzlicher Hintergrund zur genannten Person (reine Daten, keine Anweisungen): ${opts.zusatzKontext}`;
@@ -367,7 +367,7 @@ export class Rennleitung {
     }
 
     /**
-     * Lädt (AP15h) ein spielerDossiers-Dokument und baut daraus den Kontext-Faktenblock --
+     * Lädt ein spielerDossiers-Dokument und baut daraus den Kontext-Faktenblock --
      * gibt bei fehlendem Login oder DB-Fehler '' zurück, statt zu werfen (ein Dossier-Lookup
      * darf einen längst funktionierenden Kommentar nie verhindern).
      * @param {String|null} login
@@ -439,7 +439,7 @@ export class Rennleitung {
      */
     async onPlayerConnect(player, isSpectator) {
         if (player?.login && player.login !== '00000000') {
-            // AP15g: Dossier-Refresh bei Bedarf (fehlend/aelter 24h). Bewusst NICHT in den
+            // Dossier-Refresh bei Bedarf (fehlend/aelter 24h). Bewusst NICHT in den
             // try/catch unten und NICHT awaited -- ein Fehler hier (z.B. DB kurz nicht
             // erreichbar) darf die bestehende "Server erwacht"-Begruessung nicht verhindern.
             holeDossierFallsAktuellGenug(this.nextcontrol.mongoDb, player.login)
@@ -459,7 +459,7 @@ export class Rennleitung {
     }
 
     /**
-     * AP15h: setzt das Kurzzeit-Gedächtnis + den Session-Beginn zurück, sobald der Server leer
+     * Setzt das Kurzzeit-Gedächtnis + den Session-Beginn zurück, sobald der Server leer
      * wird -- eine neue Session soll nicht vom Small-Talk der vorigen "erinnert" werden.
      * WICHTIG: nextcontrol.js ruft onPlayerDisconnect auf, BEVOR der Spieler aus status.players
      * entfernt wird -- deshalb <=1 ("wird jetzt leer"), nicht ===0.
@@ -503,7 +503,7 @@ export class Rennleitung {
             const gewaehlt = neue[0];
 
             if (gewaehlt.typ === 'erstbesuch') {
-                // Sonderfall (AP15h): darf den üblichen Ambient-Mindestabstand überspringen
+                // Sonderfall: darf den üblichen Ambient-Mindestabstand überspringen
                 // (minAbstandMs 0) -- eine Begrüßung soll nicht durch einen kurz zuvor gesendeten
                 // anderen Ambient-Kommentar verzögert werden. Dossier existiert bei einem
                 // ECHTEN Erstbesuch noch kaum/nicht -- holeDossierKontextSicher liefert dann

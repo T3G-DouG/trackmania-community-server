@@ -70,7 +70,7 @@ password: secrets.MYSQL_PASSWORD,
 database: "nextcontrol"
 },
 
-// List of disabled plugins by their name. 'Cup' (AP14d) ist HIER bewusst mit
+// List of disabled plugins by their name. 'Cup' ist HIER bewusst mit
 // aufgefuehrt: die Verbotsliste gilt im NORMALEN Betrieb (CUP_MODUS nicht gesetzt) --
 // ohne diesen Eintrag wuerde das Cup-Plugin auch im normalen TimeAttack-Hauptcontroller
 // laufen und cupTurniere/-Status/-Kommandos bedienen, obwohl es dort nie soll. Im
@@ -83,10 +83,10 @@ disabledPlugins: ['Beispiel-Plugin', 'Cup'],
 cupModusPluginAllowlist: ['Admin-Werkzeuge', 'Hilfe', 'Cup'],
 
 // List of administrators by their logins (kommagetrennt in secrets.env,
-// ADMIN_LOGINS=login1,login2 -- siehe docs/SYSTEM.md).
+// ADMIN_LOGINS=login1,login2 -- siehe CONFIGURATION.md).
 admins: (secrets.ADMIN_LOGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
 
-// Telegram-Bot-Zugangsdaten (zentral in secrets.env, siehe docs/SYSTEM.md)
+// Telegram-Bot-Zugangsdaten (zentral in secrets.env, siehe CONFIGURATION.md)
 // Test-Modus: TELEGRAM_TEST_BOT=true node . -> nutzt den dedizierten Test-Bot
 // (@oracle0815_bot, TELEGRAM_TOKEN_TEST) statt des produktiven Bots -- verhindert
 // den Mehrfach-Poller-Konflikt (ein Telegram-Bot-Token vertraegt nur einen Poller).
@@ -97,14 +97,14 @@ chatId: secrets.TELEGRAM_CHAT_ID,
 dryRun: process.env.TELEGRAM_DRY_RUN === 'true'
 },
 
-// KI-Kommentator ("Rennleitung"), siehe controller/plugins/rennleitung.js + docs/SYSTEM.md.
+// KI-Kommentator ("Rennleitung"), siehe controller/plugins/rennleitung.js.
 // API-Key ausschliesslich in secrets.env (ANTHROPIC_API_KEY). Fehlt er, bleibt das Plugin still.
 // Modell als Config-Wert -> Upgrade auf 'claude-sonnet-5'/'claude-opus-4-8' ohne Codeaenderung.
 // Aus-Schalter: KI_AUS=true node .   Trockenlauf: KI_DRY_RUN=true node . (nur loggen, nichts senden).
 ki: {
 apiKey: secrets.ANTHROPIC_API_KEY,
 modell: 'claude-haiku-4-5',
-// Analyse-Laeufe (AP15d, woechentlich) nutzen ein staerkeres Modell als die
+// Analyse-Laeufe (woechentlich) nutzen ein staerkeres Modell als die
 // Live-Kommentare der Rennleitung -- als eigener Config-Wert, damit sich beide
 // unabhaengig voneinander upgraden lassen. Override: KI_ANALYSE_MODELL=... node .
 analyseModell: process.env.KI_ANALYSE_MODELL || 'claude-sonnet-5',
@@ -128,7 +128,7 @@ maxProStunde: Number(process.env.NACHRICHTEN_KI_MAX_PRO_STUNDE) || 300
 // BEWUSST STANDARDMAESSIG AUS (kein CUP_MODUS-Gate wie beim separaten Cup-Controller
 // moeglich, telegram.js laeuft immer im normal-live Prozess) -- der Betreiber muss
 // CUP_TELEGRAM_AKTIV=true explizit setzen, bevor echte Nutzer im Live-Bot /cup nutzen
-// koennen. Bis zur AP14j-Freigabe bleibt das aus, auch wenn dieser Code deployt ist.
+// koennen. Bis zur expliziten Freigabe des Betreibers bleibt das aus, auch wenn dieser Code deployt ist.
 cup: {
 aktiv: process.env.CUP_TELEGRAM_AKTIV === 'true',
 erinnerungMinutenVorher: 30

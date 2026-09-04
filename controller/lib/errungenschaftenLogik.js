@@ -1,6 +1,6 @@
 // errungenschaftenLogik.js -- Reine Erkennungsfunktionen fuer das Errungenschaften-System.
 // Importiert bewusst NUR den Katalog (keine Mongo-/NextControl-Abhaengigkeit), damit dieses
-// Modul gefahrlos von Testskripten importiert werden kann (siehe CLAUDE.md-Testbarkeitsregel:
+// Modul gefahrlos von Testskripten importiert werden kann (Testbarkeitsregel:
 // controller/plugins/*.js und nextcontrol.js duerfen von Testskripten niemals importiert werden).
 // Der I/O-Teil (Mongo lesen/schreiben, Chat, Gaming-Log) lebt in controller/plugins/errungenschaften.js.
 

@@ -16,7 +16,7 @@ export const LEGACY_JAHR_LABEL = '2025/26';
 // Live-Aktivitaetsdaten werden beim Umzug verworfen -- erst ab dem Umzug und
 // dem Start der Saison 26/27 (== ZYKLUS_START_MONAT) erscheinen Aktivitaetsdaten
 // im Datensatz. Punkte/Siege/Maps-Historie ist davon NICHT betroffen (die
-// migriert AP6 vollstaendig und durchgaengig). Siehe docs/SYSTEM.md.
+// wird beim Migrationsschritt vollstaendig und durchgaengig uebernommen).
 export const AKTIVITAET_SEIT_MONAT = ZYKLUS_START_MONAT;
 
 /**

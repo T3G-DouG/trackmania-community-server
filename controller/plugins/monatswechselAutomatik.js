@@ -9,8 +9,8 @@
 // manuell erneut ausloesen oder den Wartungsmodus aufheben.
 //
 // "Controller anhalten" wird bewusst NICHT als Prozess-Kill umgesetzt: der
-// AlwaysUp-Dienst wuerde einen beendeten Prozess automatisch neu starten
-// (siehe docs/SYSTEM.md), und ein toter Prozess koennte weder das ingame-
+// AlwaysUp-Dienst wuerde einen beendeten Prozess automatisch neu starten,
+// und ein toter Prozess koennte weder das ingame-
 // Banner an neu verbundene Spieler senden noch auf Admin-Befehle reagieren.
 // Der Wartungsmodus ist stattdessen DB-persistiert (uebersteht Neustarts,
 // Muster wie controller/lib/analyse/automatikTakt.js) und blockiert nur die
@@ -129,7 +129,7 @@ export class MonatswechselAutomatik {
             'Monatswechsel steuern: /admin monatswechsel jetzt|status|wartungAus', this.name
         ));
 
-        // AP17e: Menue-Eintraege
+        // Menue-Eintraege
         const eintrag = (label, wert) => new Classes.MenuEintrag(
             'Admin · Server', label, kodiereAktion(AKTION_PRAEFIX, wert), { adminOnly: true, pluginName: this.name }
         );

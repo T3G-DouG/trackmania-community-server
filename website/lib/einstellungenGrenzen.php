@@ -11,7 +11,7 @@
 
 const ADMIN_MODELLE = ['claude-haiku-4-5', 'claude-sonnet-5', 'claude-opus-4-8'];
 
-// AP16b: Budget-Guard-Mindestabstand zwischen zwei Analyse-Laeufen (egal ob automatisch oder
+// Budget-Guard-Mindestabstand zwischen zwei Analyse-Laeufen (egal ob automatisch oder
 // manuell) -- Zwilling von BUDGET_GUARD_STUNDEN in controller/lib/analyse/automatikTakt.js.
 // Wird hier nur fuer die "naechster Lauf erst ab..."-Anzeige im Dashboard gebraucht (Skript-
 // only Wertebereichs-Pruefung, die eigentliche Durchsetzung passiert im Controller).
@@ -50,7 +50,7 @@ const ADMIN_DEFAULTS = [
     ],
 ];
 
-// AP16b: Zwilling von defaults().analyse in controller/lib/laufzeitEinstellungen.js. `analyse`
+// Zwilling von defaults().analyse in controller/lib/laufzeitEinstellungen.js. `analyse`
 // hat eine andere Feldform (wochentag/uhrzeit statt der msKurr-Felder oben) und steht daher
 // bewusst NICHT in ADMIN_GRENZEN -- admin-api.php validiert diesen Bereich separat ueber die
 // Funktionen unten statt ueber die generische min/max-Klemmung.
@@ -61,7 +61,7 @@ const ADMIN_ANALYSE_DEFAULTS = [
     'telegramBericht' => true,
 ];
 
-// AP17: Zwilling von defaults().tagesreport in controller/lib/laufzeitEinstellungen.js. Kein
+// Zwilling von defaults().tagesreport in controller/lib/laufzeitEinstellungen.js. Kein
 // LLM (rein deterministisch) -- daher nur aktiv/uhrzeit, analog zur eigenen Validierung wie
 // beim analyse-Bereich statt der generischen min/max-Klemmung.
 const ADMIN_TAGESREPORT_DEFAULTS = [
