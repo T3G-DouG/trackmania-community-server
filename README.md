@@ -72,7 +72,13 @@ Bekannte Einschränkungen: [KNOWN-LIMITATIONS.md](KNOWN-LIMITATIONS.md)
 
 ## Screenshots
 
-<!-- TODO: Screenshots einfügen -->
+*(Beispieldaten zur Illustration.)*
+
+**Live-Dashboard** — Zeiten, Punkte-Rangliste und Server-Status in Echtzeit:
+![Live-Dashboard](screenshots/live-dashboard.png)
+
+**Hall of Fame** — Allzeit-Statistik über die gesamte Server-Historie:
+![Hall of Fame](screenshots/hall-of-fame.png)
 
 ## Lizenz & Herkunft
 
